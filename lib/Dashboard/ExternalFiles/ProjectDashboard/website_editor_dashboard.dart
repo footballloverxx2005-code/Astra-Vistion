@@ -7173,58 +7173,61 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                       left: 0,
                       right: 0,
                       height: timelineHeight,
-                      child: Row(
-                        children: List.generate(totalFrames, (i) {
-                          final isKey = keyframes.contains(i);
-                          final isPlayhead = i == playheadFrame;
-                          return GestureDetector(
-                            onTap: () {
-                              setState(() {
-                                if (isKey) {
-                                  keyframes.remove(i);
-                                } else {
-                                  keyframes.add(i);
-                                  keyframes.sort();
-                                }
-                                _animations[_selectedAnimationIndex!]
-                                    ['keyframes'] = keyframes;
-                              });
-                            },
-                            child: SizedBox(
-                              width: frameWidth,
-                              child: Stack(
-                                alignment: Alignment.center,
-                                children: [
-                                  if (isKey)
-                                    Icon(Icons.diamond,
-                                        size: 18, color: Colors.amber),
-                                  if (isPlayhead)
-                                    Positioned(
-                                      top: 0,
-                                      child: Container(
-                                        width: 4,
-                                        height: timelineHeight,
-                                        color: Colors.red,
-                                      ),
-                                    ),
-                                  if (isPlayhead)
-                                    Positioned(
-                                      bottom: 0,
-                                      child: Container(
-                                        width: frameWidth,
-                                        height: 24,
-                                        decoration: BoxDecoration(
-                                          color: Colors.red.withOpacity(0.2),
-                                          borderRadius:
-                                              BorderRadius.circular(4),
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: List.generate(totalFrames, (i) {
+                            final isKey = keyframes.contains(i);
+                            final isPlayhead = i == playheadFrame;
+                            return GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  if (isKey) {
+                                    keyframes.remove(i);
+                                  } else {
+                                    keyframes.add(i);
+                                    keyframes.sort();
+                                  }
+                                  _animations[_selectedAnimationIndex!]
+                                      ['keyframes'] = keyframes;
+                                });
+                              },
+                              child: SizedBox(
+                                width: frameWidth,
+                                child: Stack(
+                                  alignment: Alignment.center,
+                                  children: [
+                                    if (isKey)
+                                      Icon(Icons.diamond,
+                                          size: 18, color: Colors.amber),
+                                    if (isPlayhead)
+                                      Positioned(
+                                        top: 0,
+                                        child: Container(
+                                          width: 4,
+                                          height: timelineHeight,
+                                          color: Colors.red,
                                         ),
                                       ),
-                                    ),
-                                ],
+                                    if (isPlayhead)
+                                      Positioned(
+                                        bottom: 0,
+                                        child: Container(
+                                          width: frameWidth,
+                                          height: 24,
+                                          decoration: BoxDecoration(
+                                            color: Colors.red.withOpacity(0.2),
+                                            borderRadius:
+                                                BorderRadius.circular(4),
+                                          ),
+                                        ),
+                                      ),
+                                  ],
+                                ),
                               ),
-                            ),
-                          );
-                        }),
+                            );
+                          }),
+                        ),
                       ),
                     ),
                     // Frame numbers (every 10 frames)
@@ -7233,21 +7236,24 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                       left: 0,
                       right: 0,
                       height: rulerHeight,
-                      child: Row(
-                        children: List.generate(totalFrames ~/ 10 + 1, (i) {
-                          return SizedBox(
-                            width: frameWidth * 10,
-                            child: Center(
-                              child: Text(
-                                '${i * 10}',
-                                style: TextStyle(
-                                  color: Colors.white.withOpacity(0.4),
-                                  fontSize: 12,
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: List.generate(totalFrames ~/ 10 + 1, (i) {
+                            return SizedBox(
+                              width: frameWidth * 10,
+                              child: Center(
+                                child: Text(
+                                  '${i * 10}',
+                                  style: TextStyle(
+                                    color: Colors.white.withOpacity(0.4),
+                                    fontSize: 12,
+                                  ),
                                 ),
                               ),
-                            ),
-                          );
-                        }),
+                            );
+                          }),
+                        ),
                       ),
                     ),
                   ],
