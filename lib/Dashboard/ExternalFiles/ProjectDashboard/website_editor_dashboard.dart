@@ -236,6 +236,37 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
     super.initState();
     _loadProjectData();
     _hexController.addListener(_updateColorFromHex);
+    _initializeSampleElements();
+  }
+
+  void _initializeSampleElements() {
+    // Add sample elements for testing keyframe functionality
+    _screenComponents.addAll([
+      {
+        'type': 'container',
+        'name': 'Test Container',
+        'position': Offset(100, 100),
+        'width': 120.0,
+        'height': 80.0,
+        'backgroundColor': Colors.blue,
+        'selected': false,
+        'rotation': 0.0,
+        'scale': 1.0,
+        'opacity': 1.0,
+      },
+      {
+        'type': 'text',
+        'name': 'Test Text',
+        'position': Offset(200, 150),
+        'text': 'Hello Animation',
+        'fontSize': 24.0,
+        'color': Colors.white,
+        'selected': false,
+        'rotation': 0.0,
+        'scale': 1.0,
+        'opacity': 1.0,
+      },
+    ]);
   }
 
   @override
@@ -3794,10 +3825,10 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
       return;
     }
     
-    // Simple playback - cycle through keyframes
+    // Enhanced playback - cycle through keyframes and apply stored data
     int currentKeyframeIndex = 0;
     
-    Timer.periodic(Duration(milliseconds: 100), (timer) {
+    Timer.periodic(Duration(milliseconds: 500), (timer) { // Slower for better visibility
       if (!_isPlaying || currentKeyframeIndex >= keyframes.length) {
         timer.cancel();
         setState(() {
@@ -3806,12 +3837,55 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
         return;
       }
       
+      final currentFrame = keyframes[currentKeyframeIndex];
+      
       setState(() {
-        _selectedFrame = keyframes[currentKeyframeIndex];
+        _selectedFrame = currentFrame;
+        // Apply saved keyframe data
+        _applyKeyframeData(currentFrame);
       });
       
       currentKeyframeIndex++;
     });
+  }
+  
+  // Apply saved keyframe data to elements
+  void _applyKeyframeData(int frame) {
+    if (_selectedAnimationIndex == null || _selectedAnimationIndex! >= _animations.length) {
+      return;
+    }
+    
+    final animation = _animations[_selectedAnimationIndex!];
+    final frameData = animation['frame_data'];
+    
+    if (frameData == null) {
+      print('No frame data found for animation');
+      return;
+    }
+    
+    final currentFrameData = frameData['frame_$frame'];
+    if (currentFrameData == null) {
+      print('No data found for frame $frame');
+      return;
+    }
+    
+    print('Applying keyframe data for frame $frame');
+    
+    // Apply data to elements
+    for (int i = 0; i < _screenComponents.length; i++) {
+      final elementData = currentFrameData['element_$i'];
+      if (elementData != null) {
+        final component = _screenComponents[i];
+        
+        // Update element properties
+        component['position'] = elementData['position'];
+        component['rotation'] = elementData['rotation'];
+        component['scale'] = elementData['scale'];
+        component['opacity'] = elementData['opacity'];
+        
+        print('Applied data to ${component['name']}: ${elementData}');
+      }
+    }
   }
   
   void _stopAnimation() {
@@ -3822,42 +3896,55 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
   
   // Record keyframe when element properties change
   void _recordKeyframe() {
+    print('_recordKeyframe called - Recording: $_isRecording, SelectedAnimation: $_selectedAnimationIndex, SelectedFrame: $_selectedFrame');
+    
     if (!_isRecording || _selectedAnimationIndex == null || _selectedAnimationIndex! >= _animations.length) {
+      print('Recording aborted - conditions not met');
       return;
     }
     
     final animation = _animations[_selectedAnimationIndex!];
     final keyframes = List<int>.from(animation['keyframes'] ?? []);
     
-    // Add current frame as keyframe if not already present
-    if (!keyframes.contains(_selectedFrame)) {
-      keyframes.add(_selectedFrame);
-      keyframes.sort();
+    // Always record data, even if keyframe already exists (to update current state)
+    final selectedElements = _screenComponents.where((c) => c['selected'] == true).toList();
+    print('Found ${selectedElements.length} selected elements');
+    
+    if (selectedElements.isNotEmpty) {
+      // Add current frame as keyframe if not already present
+      if (!keyframes.contains(_selectedFrame)) {
+        keyframes.add(_selectedFrame);
+        keyframes.sort();
+        animation['keyframes'] = keyframes;
+        print('Added keyframe at frame $_selectedFrame');
+      }
+      
+      // Store the current state of all selected elements at this frame
+      final frameData = <String, dynamic>{};
+      for (int i = 0; i < selectedElements.length; i++) {
+        final element = selectedElements[i];
+        frameData['element_$i'] = {
+          'position': element['position'],
+          'rotation': element['rotation'],
+          'scale': element['scale'],
+          'opacity': element['opacity'],
+          'name': element['name'], // Also store name for reference
+        };
+        print('Recorded data for ${element['name']}: pos=${element['position']}, rot=${element['rotation']}, scale=${element['scale']}, opacity=${element['opacity']}');
+      }
+      
+      // Store frame data in animation
+      if (animation['frame_data'] == null) {
+        animation['frame_data'] = <String, dynamic>{};
+      }
+      animation['frame_data']['frame_$_selectedFrame'] = frameData;
+      print('Saved frame data for frame $_selectedFrame');
       
       setState(() {
-        animation['keyframes'] = keyframes;
-        
-        // Store the current state of all selected elements at this frame
-        final selectedElements = _screenComponents.where((c) => c['selected'] == true).toList();
-        if (selectedElements.isNotEmpty) {
-          final frameData = <String, dynamic>{};
-          for (int i = 0; i < selectedElements.length; i++) {
-            final element = selectedElements[i];
-            frameData['element_$i'] = {
-              'position': element['position'],
-              'rotation': element['rotation'],
-              'scale': element['scale'],
-              'opacity': element['opacity'],
-            };
-          }
-          
-          // Store frame data in animation
-          if (animation['frame_data'] == null) {
-            animation['frame_data'] = <String, dynamic>{};
-          }
-          animation['frame_data']['frame_$_selectedFrame'] = frameData;
-        }
+        // Trigger UI update
       });
+    } else {
+      print('No selected elements found - cannot record keyframe');
     }
   }
 
@@ -3941,6 +4028,66 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                     _showSpeedTypeDialog(animation);
                   },
                 ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          
+          // Debug: Show saved keyframe data
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: const Color(0xFF252525),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.data_object, color: Colors.orange, size: 20),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Saved Keyframes Data',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                if (animation['keyframes'] != null && animation['keyframes'].isNotEmpty) ...[
+                  Text(
+                    'Keyframes: ${animation['keyframes'].join(', ')}',
+                    style: TextStyle(color: Colors.white70, fontSize: 12),
+                  ),
+                  const SizedBox(height: 8),
+                  if (animation['frame_data'] != null) ...[
+                    Text(
+                      'Frame Data:',
+                      style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold),
+                    ),
+                    ...((animation['frame_data'] as Map<String, dynamic>).entries.map((entry) {
+                      return Padding(
+                        padding: const EdgeInsets.only(left: 8, top: 4),
+                        child: Text(
+                          '${entry.key}: ${entry.value}',
+                          style: TextStyle(color: Colors.white54, fontSize: 10),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      );
+                    }).toList()),
+                  ],
+                ] else ...[
+                  Text(
+                    'No keyframes saved yet. Enable recording and click on timeline frames or modify element properties.',
+                    style: TextStyle(color: Colors.white54, fontSize: 12),
+                  ),
+                ],
               ],
             ),
           ),
