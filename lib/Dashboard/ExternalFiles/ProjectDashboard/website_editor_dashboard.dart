@@ -229,6 +229,62 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
     super.initState();
     _loadProjectData();
     _hexController.addListener(_updateColorFromHex);
+    _initializeSampleElements();
+  }
+
+  void _initializeSampleElements() {
+    // Add some sample elements for testing animation mode
+    _screenComponents.addAll([
+      {
+        'type': 'text',
+        'name': 'Sample Text',
+        'position': Offset(100, 100),
+        'text': 'Hello World',
+        'fontSize': 24.0,
+        'fontWeight': 'normal',
+        'color': Colors.white,
+        'selected': false,
+        'rotation': 0.0,
+        'scale': 1.0,
+        'opacity': 1.0,
+        'animation_duration': 1.0,
+        'animation_delay': 0.0,
+        'animation_easing': 'ease-in-out',
+        'animation_loop': false,
+      },
+      {
+        'type': 'container',
+        'name': 'Sample Container',
+        'position': Offset(200, 150),
+        'width': 100.0,
+        'height': 80.0,
+        'backgroundColor': Colors.blue,
+        'selected': false,
+        'rotation': 0.0,
+        'scale': 1.0,
+        'opacity': 1.0,
+        'animation_duration': 2.0,
+        'animation_delay': 0.5,
+        'animation_easing': 'ease-out',
+        'animation_loop': true,
+      },
+      {
+        'type': 'button',
+        'name': 'Sample Button',
+        'position': Offset(150, 250),
+        'text': 'Click Me',
+        'backgroundColor': Colors.green,
+        'selected': false,
+        'rotation': 0.0,
+        'scale': 1.0,
+        'opacity': 1.0,
+        'animation_duration': 0.8,
+        'animation_delay': 0.2,
+        'animation_easing': 'bounce',
+        'animation_loop': false,
+      },
+    ]);
+
   }
 
   @override
@@ -488,9 +544,16 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                                                       component['name'] ??
                                                           'Element',
                                                       style: TextStyle(
-                                                          color: Colors.white)),
+                                                          color: component['selected'] == true 
+                                                              ? Colors.white 
+                                                              : Colors.white70,
+                                                          fontWeight: component['selected'] == true 
+                                                              ? FontWeight.w600 
+                                                              : FontWeight.normal)),
                                                   leading: Icon(Icons.widgets,
-                                                      color: Colors.white54),
+                                                      color: component['selected'] == true 
+                                                          ? Colors.blue 
+                                                          : Colors.white54),
                                                   selected: component['selected'] == true,
                                                   selectedTileColor: Colors.blue.withOpacity(0.2),
                                                   onTap: () {
@@ -3697,6 +3760,8 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
       }
     }
 
+
+
     if (_isScreenSelected && selectedComponent != null) {
       if (_selectedRightTab == 'Animation') {
         return _buildElementAnimationView(selectedComponent);
@@ -3764,6 +3829,49 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                   ),
                   textAlign: TextAlign.center,
                 ),
+                const SizedBox(height: 16),
+                // Show available elements
+                Text(
+                  'Available elements: ${_screenComponents.length}',
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: 12,
+                  ),
+                ),
+                if (_screenComponents.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  ...(_screenComponents.map((component) => Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 2),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.widgets,
+                          color: component['selected'] == true ? Colors.blue : Colors.white54,
+                          size: 12,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          '${component['name'] ?? 'Unnamed'} ${component['selected'] == true ? '(Selected)' : ''}',
+                          style: TextStyle(
+                            color: component['selected'] == true ? Colors.blue : Colors.white54,
+                            fontSize: 11,
+                            fontWeight: component['selected'] == true ? FontWeight.w600 : FontWeight.normal,
+                          ),
+                        ),
+                      ],
+                    ),
+                  )).toList()),
+                ] else ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    'No elements found. Switch to Design mode and add some elements first.',
+                    style: TextStyle(
+                      color: Colors.orange,
+                      fontSize: 11,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
               ],
             ),
           ),
