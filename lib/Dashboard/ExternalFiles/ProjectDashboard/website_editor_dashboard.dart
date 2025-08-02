@@ -630,7 +630,9 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                                                       setState(() {
                                                         _animations.add({
                                                           'name': result,
-                                                          'keyframes': <int>[]
+                                                          'keyframes': <int>[],
+                                                          'loop': false,
+                                                          'speed_type': 'Normal'
                                                         });
                                                       });
                                                     }
@@ -3680,6 +3682,11 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
 
   // Method to build animation right sidebar content
   Widget _buildAnimationRightSidebarContent() {
+    // Check if an animation is selected
+    if (_selectedAnimationIndex != null && _selectedAnimationIndex! < _animations.length) {
+      return _buildSelectedAnimationSettings(_animations[_selectedAnimationIndex!]);
+    }
+    
     // Find the selected component if any
     Map<String, dynamic>? selectedComponent;
     for (var component in _screenComponents) {
@@ -3689,15 +3696,8 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
       }
     }
 
-
-
     if (_isScreenSelected && selectedComponent != null) {
-      if (_selectedRightTab == 'Animation') {
-        return _buildElementAnimationView(selectedComponent);
-      } else if (_selectedRightTab == 'Properties') {
-        return _buildComponentStyleView(selectedComponent);
-      }
-      return _buildElementAnimationView(selectedComponent); // Default return
+      return _buildComponentStyleView(selectedComponent);
     } else {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -3709,7 +3709,7 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Animation Information',
+                  'Properties',
                   style: TextStyle(
                     color: Colors.white.withOpacity(0.4),
                     fontSize: 12,
@@ -3717,7 +3717,7 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                   ),
                 ),
                 Icon(
-                  Icons.animation,
+                  Icons.settings,
                   color: Colors.white54,
                   size: 18,
                 ),
@@ -3736,13 +3736,13 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Icon(
-                  Icons.touch_app,
+                  Icons.animation,
                   color: Colors.white54,
                   size: 48,
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'Select an element',
+                  'Select an animation or element',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 16,
@@ -3751,56 +3751,13 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Click on an element in the left panel to view and edit its animation properties.',
+                  'Click on an animation in the left panel to view its settings, or select an element to edit its properties.',
                   style: TextStyle(
                     color: Colors.white54,
                     fontSize: 12,
                   ),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 16),
-                // Show available elements
-                Text(
-                  'Available elements: ${_screenComponents.length}',
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontSize: 12,
-                  ),
-                ),
-                if (_screenComponents.isNotEmpty) ...[
-                  const SizedBox(height: 8),
-                  ...(_screenComponents.map((component) => Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 2),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.widgets,
-                          color: component['selected'] == true ? Colors.blue : Colors.white54,
-                          size: 12,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          '${component['name'] ?? 'Unnamed'} ${component['selected'] == true ? '(Selected)' : ''}',
-                          style: TextStyle(
-                            color: component['selected'] == true ? Colors.blue : Colors.white54,
-                            fontSize: 11,
-                            fontWeight: component['selected'] == true ? FontWeight.w600 : FontWeight.normal,
-                          ),
-                        ),
-                      ],
-                    ),
-                  )).toList()),
-                ] else ...[
-                  const SizedBox(height: 8),
-                  Text(
-                    'No elements found. Switch to Design mode and add some elements first.',
-                    style: TextStyle(
-                      color: Colors.orange,
-                      fontSize: 11,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
               ],
             ),
           ),
@@ -3808,6 +3765,137 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
         ],
       );
     }
+  }
+
+  // Method to build selected animation settings (Loop and Speed Type only)
+  Widget _buildSelectedAnimationSettings(Map<String, dynamic> animation) {
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 24),
+          // Animation info header
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Animation: ${animation['name'] ?? 'Unnamed'}',
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.4),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                Icon(
+                  Icons.movie,
+                  color: Colors.white54,
+                  size: 18,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          
+          // Animation Settings Section
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: const Color(0xFF252525),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.settings, color: Colors.blue, size: 20),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Animation Settings',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                
+                // Loop Setting
+                _buildAnimationProperty(
+                  'Loop',
+                  animation['loop'] == true ? 'Enabled' : 'Disabled',
+                  Icons.repeat,
+                  () {
+                    setState(() {
+                      animation['loop'] = !(animation['loop'] ?? false);
+                    });
+                  },
+                ),
+                const SizedBox(height: 16),
+                
+                // Speed Type Setting
+                _buildAnimationProperty(
+                  'Speed Type',
+                  animation['speed_type'] ?? 'Normal',
+                  Icons.speed,
+                  () {
+                    _showSpeedTypeDialog(animation);
+                  },
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+        ],
+      ),
+    );
+  }
+
+  // Method to show speed type selection dialog
+  void _showSpeedTypeDialog(Map<String, dynamic> animation) {
+    final speedTypes = ['Slow', 'Normal', 'Fast', 'Custom'];
+    final currentSpeedType = animation['speed_type'] ?? 'Normal';
+    
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: const Color(0xFF232323),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          title: const Text('Select Speed Type', style: TextStyle(color: Colors.white)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: speedTypes.map((speedType) {
+              return ListTile(
+                title: Text(speedType, style: const TextStyle(color: Colors.white)),
+                leading: Radio<String>(
+                  value: speedType,
+                  groupValue: currentSpeedType,
+                  onChanged: (value) {
+                    setState(() {
+                      animation['speed_type'] = value;
+                    });
+                    Navigator.of(context).pop();
+                  },
+                  activeColor: Colors.blue,
+                ),
+              );
+            }).toList(),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   // Method to build element animation view
