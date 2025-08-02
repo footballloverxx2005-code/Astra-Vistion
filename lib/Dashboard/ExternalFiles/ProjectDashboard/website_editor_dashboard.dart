@@ -229,62 +229,6 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
     super.initState();
     _loadProjectData();
     _hexController.addListener(_updateColorFromHex);
-    _initializeSampleElements();
-  }
-
-  void _initializeSampleElements() {
-    // Add some sample elements for testing animation mode
-    _screenComponents.addAll([
-      {
-        'type': 'text',
-        'name': 'Sample Text',
-        'position': Offset(100, 100),
-        'text': 'Hello World',
-        'fontSize': 24.0,
-        'fontWeight': 'normal',
-        'color': Colors.white,
-        'selected': false,
-        'rotation': 0.0,
-        'scale': 1.0,
-        'opacity': 1.0,
-        'animation_duration': 1.0,
-        'animation_delay': 0.0,
-        'animation_easing': 'ease-in-out',
-        'animation_loop': false,
-      },
-      {
-        'type': 'container',
-        'name': 'Sample Container',
-        'position': Offset(200, 150),
-        'width': 100.0,
-        'height': 80.0,
-        'backgroundColor': Colors.blue,
-        'selected': false,
-        'rotation': 0.0,
-        'scale': 1.0,
-        'opacity': 1.0,
-        'animation_duration': 2.0,
-        'animation_delay': 0.5,
-        'animation_easing': 'ease-out',
-        'animation_loop': true,
-      },
-      {
-        'type': 'button',
-        'name': 'Sample Button',
-        'position': Offset(150, 250),
-        'text': 'Click Me',
-        'backgroundColor': Colors.green,
-        'selected': false,
-        'rotation': 0.0,
-        'scale': 1.0,
-        'opacity': 1.0,
-        'animation_duration': 0.8,
-        'animation_delay': 0.2,
-        'animation_easing': 'bounce',
-        'animation_loop': false,
-      },
-    ]);
-
   }
 
   @override
@@ -808,24 +752,9 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                                           child: SingleChildScrollView(
                                             scrollDirection: Axis.horizontal,
                                             child: Row(
-                                              children: _isScreenSelected
-                                                  ? [
-                                                      _buildSettingsTab(
-                                                        'Animation',
-                                                        _selectedRightTab ==
-                                                            'Animation',
-                                                      ),
-                                                      const SizedBox(width: 10),
-                                                      _buildSettingsTab(
-                                                        'Properties',
-                                                        _selectedRightTab ==
-                                                            'Properties',
-                                                      ),
-                                                    ]
-                                                  : [
-                                                      _buildSettingsTab(
-                                                          'Animation', true)
-                                                    ],
+                                              children: [
+                                                _buildSettingsTab('Properties', true)
+                                              ],
                                             ),
                                           ),
                                         ),
