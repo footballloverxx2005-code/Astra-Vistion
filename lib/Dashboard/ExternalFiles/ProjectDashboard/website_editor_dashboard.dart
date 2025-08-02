@@ -491,6 +491,8 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                                                           color: Colors.white)),
                                                   leading: Icon(Icons.widgets,
                                                       color: Colors.white54),
+                                                  selected: component['selected'] == true,
+                                                  selectedTileColor: Colors.blue.withOpacity(0.2),
                                                   onTap: () {
                                                     setState(() {
                                                       for (var c
@@ -500,6 +502,7 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                                                       component['selected'] =
                                                           true;
                                                       _isScreenSelected = true;
+                                                      _selectedRightTab = 'Animation';
                                                     });
                                                   },
                                                 );
@@ -642,6 +645,8 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                                                           color: Colors.white)),
                                                   leading: Icon(Icons.movie,
                                                       color: Colors.white54),
+                                                  selected: _selectedAnimationIndex == index,
+                                                  selectedTileColor: Colors.blue.withOpacity(0.2),
                                                   onTap: () {
                                                     setState(() {
                                                       _selectedAnimationIndex =
@@ -694,6 +699,85 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                                       ),
                                     ),
                                     _buildKeyframeBar(),
+                                  ],
+                                ),
+                              ),
+                              // Right sidebar for Animation mode
+                              Container(
+                                width: 250,
+                                margin: const EdgeInsets.only(
+                                  right: 5,
+                                  top: 5,
+                                  bottom: 5,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF1C1C1C),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Column(
+                                  children: [
+                                    // Fixed header section
+                                    Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Container(
+                                          padding: const EdgeInsets.all(
+                                            10,
+                                          ),
+                                          child: const Row(
+                                            children: [
+                                              Text(
+                                                'Animation Settings',
+                                                style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 10,
+                                          ),
+                                          child: SingleChildScrollView(
+                                            scrollDirection: Axis.horizontal,
+                                            child: Row(
+                                              children: _isScreenSelected
+                                                  ? [
+                                                      _buildSettingsTab(
+                                                        'Animation',
+                                                        _selectedRightTab ==
+                                                            'Animation',
+                                                      ),
+                                                      const SizedBox(width: 10),
+                                                      _buildSettingsTab(
+                                                        'Properties',
+                                                        _selectedRightTab ==
+                                                            'Properties',
+                                                      ),
+                                                    ]
+                                                  : [
+                                                      _buildSettingsTab(
+                                                          'Animation', true)
+                                                    ],
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(height: 10),
+                                        Container(
+                                            height: 1,
+                                            color: const Color(0xFF121212)),
+                                      ],
+                                    ),
+                                    // Scrollable content section
+                                    Expanded(
+                                      child: SingleChildScrollView(
+                                        child: _buildAnimationRightSidebarContent(),
+                                      ),
+                                    ),
                                   ],
                                 ),
                               ),
@@ -3600,6 +3684,393 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
         ],
       );
     }
+  }
+
+  // Method to build animation right sidebar content
+  Widget _buildAnimationRightSidebarContent() {
+    // Find the selected component if any
+    Map<String, dynamic>? selectedComponent;
+    for (var component in _screenComponents) {
+      if (component['selected'] == true) {
+        selectedComponent = component;
+        break;
+      }
+    }
+
+    if (_isScreenSelected && selectedComponent != null) {
+      if (_selectedRightTab == 'Animation') {
+        return _buildElementAnimationView(selectedComponent);
+      } else if (_selectedRightTab == 'Properties') {
+        return _buildComponentStyleView(selectedComponent);
+      }
+      return _buildElementAnimationView(selectedComponent); // Default return
+    } else {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 24),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Animation Information',
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.4),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                Icon(
+                  Icons.animation,
+                  color: Colors.white54,
+                  size: 18,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: const Color(0xFF252525),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.touch_app,
+                  color: Colors.white54,
+                  size: 48,
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'Select an element',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Click on an element in the left panel to view and edit its animation properties.',
+                  style: TextStyle(
+                    color: Colors.white54,
+                    fontSize: 12,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+        ],
+      );
+    }
+  }
+
+  // Method to build element animation view
+  Widget _buildElementAnimationView(Map<String, dynamic> component) {
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 24),
+          // Element info header
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Element: ${component['name'] ?? 'Unnamed'}',
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.4),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                Icon(
+                  Icons.widgets,
+                  color: Colors.white54,
+                  size: 18,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          
+          // Animation Properties Section
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: const Color(0xFF252525),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.play_arrow, color: Colors.blue, size: 20),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Animation Properties',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                
+                // Duration Setting
+                _buildAnimationProperty(
+                  'Duration',
+                  '${component['animation_duration'] ?? 1.0}s',
+                  Icons.schedule,
+                  () {
+                    // TODO: Show duration picker
+                  },
+                ),
+                const SizedBox(height: 12),
+                
+                // Delay Setting
+                _buildAnimationProperty(
+                  'Delay',
+                  '${component['animation_delay'] ?? 0.0}s',
+                  Icons.pause,
+                  () {
+                    // TODO: Show delay picker
+                  },
+                ),
+                const SizedBox(height: 12),
+                
+                // Easing Setting
+                _buildAnimationProperty(
+                  'Easing',
+                  component['animation_easing'] ?? 'ease-in-out',
+                  Icons.timeline,
+                  () {
+                    // TODO: Show easing picker
+                  },
+                ),
+                const SizedBox(height: 12),
+                
+                // Loop Setting
+                _buildAnimationProperty(
+                  'Loop',
+                  component['animation_loop'] == true ? 'Yes' : 'No',
+                  Icons.repeat,
+                  () {
+                    setState(() {
+                      component['animation_loop'] = !(component['animation_loop'] ?? false);
+                    });
+                  },
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          
+          // Transform Properties Section
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: const Color(0xFF252525),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.transform, color: Colors.green, size: 20),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Transform',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                
+                // Position X
+                _buildSliderProperty(
+                  'Position X',
+                  component['position']?.dx ?? 0.0,
+                  -1000,
+                  1000,
+                  (value) {
+                    setState(() {
+                      final pos = component['position'] as Offset? ?? Offset.zero;
+                      component['position'] = Offset(value, pos.dy);
+                    });
+                  },
+                ),
+                const SizedBox(height: 12),
+                
+                // Position Y
+                _buildSliderProperty(
+                  'Position Y',
+                  component['position']?.dy ?? 0.0,
+                  -1000,
+                  1000,
+                  (value) {
+                    setState(() {
+                      final pos = component['position'] as Offset? ?? Offset.zero;
+                      component['position'] = Offset(pos.dx, value);
+                    });
+                  },
+                ),
+                const SizedBox(height: 12),
+                
+                // Scale
+                _buildSliderProperty(
+                  'Scale',
+                  component['scale'] ?? 1.0,
+                  0.1,
+                  3.0,
+                  (value) {
+                    setState(() {
+                      component['scale'] = value;
+                    });
+                  },
+                ),
+                const SizedBox(height: 12),
+                
+                // Rotation
+                _buildSliderProperty(
+                  'Rotation',
+                  component['rotation'] ?? 0.0,
+                  -180,
+                  180,
+                  (value) {
+                    setState(() {
+                      component['rotation'] = value;
+                    });
+                  },
+                ),
+                const SizedBox(height: 12),
+                
+                // Opacity
+                _buildSliderProperty(
+                  'Opacity',
+                  component['opacity'] ?? 1.0,
+                  0.0,
+                  1.0,
+                  (value) {
+                    setState(() {
+                      component['opacity'] = value;
+                    });
+                  },
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+        ],
+      ),
+    );
+  }
+
+  // Helper widget to build animation property row
+  Widget _buildAnimationProperty(String label, String value, IconData icon, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: const Color(0xFF2D2D2D),
+          borderRadius: BorderRadius.circular(6),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, color: Colors.white54, size: 16),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: TextStyle(
+                color: Colors.white70,
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const Spacer(),
+            Text(
+              value,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 14,
+                fontWeight: FontWeight.w400,
+              ),
+            ),
+            const SizedBox(width: 4),
+            Icon(Icons.chevron_right, color: Colors.white54, size: 16),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Helper widget to build slider property
+  Widget _buildSliderProperty(String label, double value, double min, double max, Function(double) onChanged) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              label,
+              style: TextStyle(
+                color: Colors.white70,
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            Text(
+              value.toStringAsFixed(1),
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 14,
+                fontWeight: FontWeight.w400,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        SliderTheme(
+          data: SliderTheme.of(context).copyWith(
+            trackHeight: 2,
+            thumbShape: RoundSliderThumbShape(enabledThumbRadius: 6),
+            overlayShape: RoundSliderOverlayShape(overlayRadius: 14),
+            activeTrackColor: Colors.blue,
+            inactiveTrackColor: Colors.white24,
+            thumbColor: Colors.blue,
+            overlayColor: Colors.blue.withOpacity(0.2),
+          ),
+          child: Slider(
+            value: value.clamp(min, max),
+            min: min,
+            max: max,
+            onChanged: onChanged,
+          ),
+        ),
+      ],
+    );
   }
 
   // Method to build component style view
