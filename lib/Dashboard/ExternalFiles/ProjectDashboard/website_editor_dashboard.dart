@@ -5,6 +5,7 @@ import 'file_type_registry.dart';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
+import 'dart:async';
 import 'package:flutter/services.dart'; // Add this import for keyboard events
 import '../../../Dashboard/HomeDashboard_page.dart';
 import 'package:flutter/rendering.dart';
@@ -223,6 +224,12 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
 
   // 1. Add state for selected frame and per-animation keyframes
   int _selectedFrame = 0;
+  
+  // Recording state for keyframes
+  bool _isRecording = false;
+  
+  // Animation playback state
+  bool _isPlaying = false;
 
   @override
   void initState() {
@@ -3767,6 +3774,93 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
     }
   }
 
+  // Animation playback methods
+  void _playAnimation() {
+    if (_selectedAnimationIndex == null || _selectedAnimationIndex! >= _animations.length) {
+      return;
+    }
+    
+    setState(() {
+      _isPlaying = true;
+    });
+    
+    final animation = _animations[_selectedAnimationIndex!];
+    final keyframes = List<int>.from(animation['keyframes'] ?? []);
+    
+    if (keyframes.isEmpty) {
+      setState(() {
+        _isPlaying = false;
+      });
+      return;
+    }
+    
+    // Simple playback - cycle through keyframes
+    int currentKeyframeIndex = 0;
+    
+    Timer.periodic(Duration(milliseconds: 100), (timer) {
+      if (!_isPlaying || currentKeyframeIndex >= keyframes.length) {
+        timer.cancel();
+        setState(() {
+          _isPlaying = false;
+        });
+        return;
+      }
+      
+      setState(() {
+        _selectedFrame = keyframes[currentKeyframeIndex];
+      });
+      
+      currentKeyframeIndex++;
+    });
+  }
+  
+  void _stopAnimation() {
+    setState(() {
+      _isPlaying = false;
+    });
+  }
+  
+  // Record keyframe when element properties change
+  void _recordKeyframe() {
+    if (!_isRecording || _selectedAnimationIndex == null || _selectedAnimationIndex! >= _animations.length) {
+      return;
+    }
+    
+    final animation = _animations[_selectedAnimationIndex!];
+    final keyframes = List<int>.from(animation['keyframes'] ?? []);
+    
+    // Add current frame as keyframe if not already present
+    if (!keyframes.contains(_selectedFrame)) {
+      keyframes.add(_selectedFrame);
+      keyframes.sort();
+      
+      setState(() {
+        animation['keyframes'] = keyframes;
+        
+        // Store the current state of all selected elements at this frame
+        final selectedElements = _screenComponents.where((c) => c['selected'] == true).toList();
+        if (selectedElements.isNotEmpty) {
+          final frameData = <String, dynamic>{};
+          for (int i = 0; i < selectedElements.length; i++) {
+            final element = selectedElements[i];
+            frameData['element_$i'] = {
+              'position': element['position'],
+              'rotation': element['rotation'],
+              'scale': element['scale'],
+              'opacity': element['opacity'],
+            };
+          }
+          
+          // Store frame data in animation
+          if (animation['frame_data'] == null) {
+            animation['frame_data'] = <String, dynamic>{};
+          }
+          animation['frame_data']['frame_$_selectedFrame'] = frameData;
+        }
+      });
+    }
+  }
+
   // Method to build selected animation settings (Loop and Speed Type only)
   Widget _buildSelectedAnimationSettings(Map<String, dynamic> animation) {
     return SingleChildScrollView(
@@ -4032,76 +4126,81 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                 ),
                 const SizedBox(height: 16),
                 
-                // Position X
-                _buildSliderProperty(
-                  'Position X',
-                  component['position']?.dx ?? 0.0,
-                  -1000,
-                  1000,
-                  (value) {
-                    setState(() {
-                      final pos = component['position'] as Offset? ?? Offset.zero;
-                      component['position'] = Offset(value, pos.dy);
-                    });
-                  },
-                ),
+                                 // Position X
+                 _buildSliderProperty(
+                   'Position X',
+                   component['position']?.dx ?? 0.0,
+                   -1000,
+                   1000,
+                   (value) {
+                     setState(() {
+                       final pos = component['position'] as Offset? ?? Offset.zero;
+                       component['position'] = Offset(value, pos.dy);
+                       _recordKeyframe(); // Record keyframe when position changes
+                     });
+                   },
+                 ),
                 const SizedBox(height: 12),
                 
-                // Position Y
-                _buildSliderProperty(
-                  'Position Y',
-                  component['position']?.dy ?? 0.0,
-                  -1000,
-                  1000,
-                  (value) {
-                    setState(() {
-                      final pos = component['position'] as Offset? ?? Offset.zero;
-                      component['position'] = Offset(pos.dx, value);
-                    });
-                  },
-                ),
-                const SizedBox(height: 12),
-                
-                // Scale
-                _buildSliderProperty(
-                  'Scale',
-                  component['scale'] ?? 1.0,
-                  0.1,
-                  3.0,
-                  (value) {
-                    setState(() {
-                      component['scale'] = value;
-                    });
-                  },
-                ),
-                const SizedBox(height: 12),
-                
-                // Rotation
-                _buildSliderProperty(
-                  'Rotation',
-                  component['rotation'] ?? 0.0,
-                  -180,
-                  180,
-                  (value) {
-                    setState(() {
-                      component['rotation'] = value;
-                    });
-                  },
-                ),
-                const SizedBox(height: 12),
-                
-                // Opacity
-                _buildSliderProperty(
-                  'Opacity',
-                  component['opacity'] ?? 1.0,
-                  0.0,
-                  1.0,
-                  (value) {
-                    setState(() {
-                      component['opacity'] = value;
-                    });
-                  },
-                ),
+                                 // Position Y
+                 _buildSliderProperty(
+                   'Position Y',
+                   component['position']?.dy ?? 0.0,
+                   -1000,
+                   1000,
+                   (value) {
+                     setState(() {
+                       final pos = component['position'] as Offset? ?? Offset.zero;
+                       component['position'] = Offset(pos.dx, value);
+                       _recordKeyframe(); // Record keyframe when position changes
+                     });
+                   },
+                 ),
+                 const SizedBox(height: 12),
+                 
+                 // Scale
+                 _buildSliderProperty(
+                   'Scale',
+                   component['scale'] ?? 1.0,
+                   0.1,
+                   3.0,
+                   (value) {
+                     setState(() {
+                       component['scale'] = value;
+                       _recordKeyframe(); // Record keyframe when scale changes
+                     });
+                   },
+                 ),
+                 const SizedBox(height: 12),
+                 
+                 // Rotation
+                 _buildSliderProperty(
+                   'Rotation',
+                   component['rotation'] ?? 0.0,
+                   -180,
+                   180,
+                   (value) {
+                     setState(() {
+                       component['rotation'] = value;
+                       _recordKeyframe(); // Record keyframe when rotation changes
+                     });
+                   },
+                 ),
+                 const SizedBox(height: 12),
+                 
+                 // Opacity
+                 _buildSliderProperty(
+                   'Opacity',
+                   component['opacity'] ?? 1.0,
+                   0.0,
+                   1.0,
+                   (value) {
+                     setState(() {
+                       component['opacity'] = value;
+                       _recordKeyframe(); // Record keyframe when opacity changes
+                     });
+                   },
+                 ),
               ],
             ),
           ),
@@ -4125,21 +4224,28 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
           children: [
             Icon(icon, color: Colors.white54, size: 16),
             const SizedBox(width: 8),
-            Text(
-              label,
-              style: TextStyle(
-                color: Colors.white70,
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
+            Expanded(
+              child: Text(
+                label,
+                style: TextStyle(
+                  color: Colors.white70,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
+                overflow: TextOverflow.ellipsis,
               ),
             ),
-            const Spacer(),
-            Text(
-              value,
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 14,
-                fontWeight: FontWeight.w400,
+            const SizedBox(width: 8),
+            Flexible(
+              child: Text(
+                value,
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w400,
+                ),
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.end,
               ),
             ),
             const SizedBox(width: 4),
@@ -7099,7 +7205,38 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                const SizedBox(width: 24),
+                const Spacer(),
+                // Recording toggle button
+                IconButton(
+                  icon: Icon(
+                    Icons.fiber_manual_record,
+                    color: _isRecording ? Colors.red : Colors.white54,
+                    size: 20,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _isRecording = !_isRecording;
+                    });
+                  },
+                  tooltip: _isRecording ? 'Stop Recording' : 'Start Recording',
+                ),
+                // Run animation button
+                IconButton(
+                  icon: Icon(
+                    _isPlaying ? Icons.pause : Icons.play_arrow,
+                    color: Colors.green,
+                    size: 20,
+                  ),
+                  onPressed: () {
+                    if (_isPlaying) {
+                      _stopAnimation();
+                    } else {
+                      _playAnimation();
+                    }
+                  },
+                  tooltip: _isPlaying ? 'Pause Animation' : 'Play Animation',
+                ),
+                const SizedBox(width: 16),
                 IconButton(
                   icon: Icon(Icons.skip_previous,
                       color: Colors.white70, size: 20),
@@ -7198,8 +7335,40 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                                   alignment: Alignment.center,
                                   children: [
                                     if (isKey)
-                                      Icon(Icons.diamond,
-                                          size: 18, color: Colors.amber),
+                                      Draggable<int>(
+                                        data: i,
+                                        feedback: Icon(Icons.diamond,
+                                            size: 18, color: Colors.amber.withOpacity(0.8)),
+                                        childWhenDragging: Icon(Icons.diamond,
+                                            size: 18, color: Colors.amber.withOpacity(0.3)),
+                                        child: Icon(Icons.diamond,
+                                            size: 18, color: Colors.amber),
+                                        onDragEnd: (details) {
+                                          // Calculate new frame position based on drag end position
+                                          final RenderBox renderBox = context.findRenderObject() as RenderBox;
+                                          final localPosition = renderBox.globalToLocal(details.offset);
+                                          final newFrame = (localPosition.dx / frameWidth).round().clamp(0, totalFrames - 1);
+                                          
+                                          if (newFrame != i && !keyframes.contains(newFrame)) {
+                                            setState(() {
+                                              keyframes.remove(i);
+                                              keyframes.add(newFrame);
+                                              keyframes.sort();
+                                              _animations[_selectedAnimationIndex!]['keyframes'] = keyframes;
+                                              
+                                              // Move frame data if it exists
+                                              final frameData = _animations[_selectedAnimationIndex!]['frame_data'];
+                                              if (frameData != null) {
+                                                final oldFrameData = frameData['frame_$i'];
+                                                if (oldFrameData != null) {
+                                                  frameData['frame_$newFrame'] = oldFrameData;
+                                                  frameData.remove('frame_$i');
+                                                }
+                                              }
+                                            });
+                                          }
+                                        },
+                                      ),
                                     if (isPlayhead)
                                       Positioned(
                                         top: 0,
