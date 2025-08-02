@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "786791005211",
+    "firebase_url": "https://wandler-web-origin-default-rtdb.firebaseio.com",
+    "project_id": "wandler-web-origin",
+    "storage_bucket": "wandler-web-origin.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:786791005211:android:b7b8dd60172b01b18e8cbe",
+        "android_client_info": {
+          "package_name": "com.example.astravision"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "786791005211-9s5osv3jk69icdn2cu127cv1b136o5vm.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDna5iKq-hUiKAyX4APnHHQPAeOWqkGaik"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "786791005211-9s5osv3jk69icdn2cu127cv1b136o5vm.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
