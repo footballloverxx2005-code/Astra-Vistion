@@ -5,6 +5,7 @@ import 'file_type_registry.dart';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
+import 'dart:async';
 import 'package:flutter/services.dart'; // Add this import for keyboard events
 import '../../../Dashboard/HomeDashboard_page.dart';
 import 'package:flutter/rendering.dart';
@@ -223,12 +224,49 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
 
   // 1. Add state for selected frame and per-animation keyframes
   int _selectedFrame = 0;
+  
+  // Recording state for keyframes
+  bool _isRecording = false;
+  
+  // Animation playback state
+  bool _isPlaying = false;
 
   @override
   void initState() {
     super.initState();
     _loadProjectData();
     _hexController.addListener(_updateColorFromHex);
+    _initializeSampleElements();
+  }
+
+  void _initializeSampleElements() {
+    // Add sample elements for testing keyframe functionality
+    _screenComponents.addAll([
+      {
+        'type': 'container',
+        'name': 'Test Container',
+        'position': Offset(100, 100),
+        'width': 120.0,
+        'height': 80.0,
+        'backgroundColor': Colors.blue,
+        'selected': false,
+        'rotation': 0.0,
+        'scale': 1.0,
+        'opacity': 1.0,
+      },
+      {
+        'type': 'text',
+        'name': 'Test Text',
+        'position': Offset(200, 150),
+        'text': 'Hello Animation',
+        'fontSize': 24.0,
+        'color': Colors.white,
+        'selected': false,
+        'rotation': 0.0,
+        'scale': 1.0,
+        'opacity': 1.0,
+      },
+    ]);
   }
 
   @override
@@ -488,9 +526,18 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                                                       component['name'] ??
                                                           'Element',
                                                       style: TextStyle(
-                                                          color: Colors.white)),
+                                                          color: component['selected'] == true 
+                                                              ? Colors.white 
+                                                              : Colors.white70,
+                                                          fontWeight: component['selected'] == true 
+                                                              ? FontWeight.w600 
+                                                              : FontWeight.normal)),
                                                   leading: Icon(Icons.widgets,
-                                                      color: Colors.white54),
+                                                      color: component['selected'] == true 
+                                                          ? Colors.blue 
+                                                          : Colors.white54),
+                                                  selected: component['selected'] == true,
+                                                  selectedTileColor: Colors.blue.withOpacity(0.2),
                                                   onTap: () {
                                                     setState(() {
                                                       for (var c
@@ -500,6 +547,7 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                                                       component['selected'] =
                                                           true;
                                                       _isScreenSelected = true;
+                                                      _selectedRightTab = 'Animation';
                                                     });
                                                   },
                                                 );
@@ -620,7 +668,9 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                                                       setState(() {
                                                         _animations.add({
                                                           'name': result,
-                                                          'keyframes': <int>[]
+                                                          'keyframes': <int>[],
+                                                          'loop': false,
+                                                          'speed_type': 'Normal'
                                                         });
                                                       });
                                                     }
@@ -642,6 +692,8 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                                                           color: Colors.white)),
                                                   leading: Icon(Icons.movie,
                                                       color: Colors.white54),
+                                                  selected: _selectedAnimationIndex == index,
+                                                  selectedTileColor: Colors.blue.withOpacity(0.2),
                                                   onTap: () {
                                                     setState(() {
                                                       _selectedAnimationIndex =
@@ -694,6 +746,70 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                                       ),
                                     ),
                                     _buildKeyframeBar(),
+                                  ],
+                                ),
+                              ),
+                              // Right sidebar for Animation mode
+                              Container(
+                                width: 250,
+                                margin: const EdgeInsets.only(
+                                  right: 5,
+                                  top: 5,
+                                  bottom: 5,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF1C1C1C),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Column(
+                                  children: [
+                                    // Fixed header section
+                                    Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Container(
+                                          padding: const EdgeInsets.all(
+                                            10,
+                                          ),
+                                          child: const Row(
+                                            children: [
+                                              Text(
+                                                'Animation Settings',
+                                                style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 10,
+                                          ),
+                                          child: SingleChildScrollView(
+                                            scrollDirection: Axis.horizontal,
+                                            child: Row(
+                                              children: [
+                                                _buildSettingsTab('Properties', true)
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(height: 10),
+                                        Container(
+                                            height: 1,
+                                            color: const Color(0xFF121212)),
+                                      ],
+                                    ),
+                                    // Scrollable content section
+                                    Expanded(
+                                      child: SingleChildScrollView(
+                                        child: _buildAnimationRightSidebarContent(),
+                                      ),
+                                    ),
                                   ],
                                 ),
                               ),
@@ -3602,6 +3718,739 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
     }
   }
 
+  // Method to build animation right sidebar content
+  Widget _buildAnimationRightSidebarContent() {
+    // Check if an animation is selected
+    if (_selectedAnimationIndex != null && _selectedAnimationIndex! < _animations.length) {
+      return _buildSelectedAnimationSettings(_animations[_selectedAnimationIndex!]);
+    }
+    
+    // Find the selected component if any
+    Map<String, dynamic>? selectedComponent;
+    for (var component in _screenComponents) {
+      if (component['selected'] == true) {
+        selectedComponent = component;
+        break;
+      }
+    }
+
+    if (_isScreenSelected && selectedComponent != null) {
+      return _buildComponentStyleView(selectedComponent);
+    } else {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 24),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Properties',
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.4),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                Icon(
+                  Icons.settings,
+                  color: Colors.white54,
+                  size: 18,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: const Color(0xFF252525),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.animation,
+                  color: Colors.white54,
+                  size: 48,
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'Select an animation or element',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Click on an animation in the left panel to view its settings, or select an element to edit its properties.',
+                  style: TextStyle(
+                    color: Colors.white54,
+                    fontSize: 12,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+        ],
+      );
+    }
+  }
+
+  // Animation playback methods
+  void _playAnimation() {
+    if (_selectedAnimationIndex == null || _selectedAnimationIndex! >= _animations.length) {
+      return;
+    }
+    
+    setState(() {
+      _isPlaying = true;
+    });
+    
+    final animation = _animations[_selectedAnimationIndex!];
+    final keyframes = List<int>.from(animation['keyframes'] ?? []);
+    
+    if (keyframes.isEmpty) {
+      setState(() {
+        _isPlaying = false;
+      });
+      return;
+    }
+    
+    // Enhanced playback - cycle through keyframes and apply stored data
+    int currentKeyframeIndex = 0;
+    
+    Timer.periodic(Duration(milliseconds: 500), (timer) { // Slower for better visibility
+      if (!_isPlaying || currentKeyframeIndex >= keyframes.length) {
+        timer.cancel();
+        setState(() {
+          _isPlaying = false;
+        });
+        return;
+      }
+      
+      final currentFrame = keyframes[currentKeyframeIndex];
+      
+      setState(() {
+        _selectedFrame = currentFrame;
+        // Apply saved keyframe data
+        _applyKeyframeData(currentFrame);
+      });
+      
+      currentKeyframeIndex++;
+    });
+  }
+  
+  // Apply saved keyframe data to elements
+  void _applyKeyframeData(int frame) {
+    if (_selectedAnimationIndex == null || _selectedAnimationIndex! >= _animations.length) {
+      return;
+    }
+    
+    final animation = _animations[_selectedAnimationIndex!];
+    final frameData = animation['frame_data'];
+    
+    if (frameData == null) {
+      print('No frame data found for animation');
+      return;
+    }
+    
+    final currentFrameData = frameData['frame_$frame'];
+    if (currentFrameData == null) {
+      print('No data found for frame $frame');
+      return;
+    }
+    
+    print('Applying keyframe data for frame $frame');
+    
+    // Apply data to elements
+    for (int i = 0; i < _screenComponents.length; i++) {
+      final elementData = currentFrameData['element_$i'];
+      if (elementData != null) {
+        final component = _screenComponents[i];
+        
+        // Update element properties
+        component['position'] = elementData['position'];
+        component['rotation'] = elementData['rotation'];
+        component['scale'] = elementData['scale'];
+        component['opacity'] = elementData['opacity'];
+        
+        print('Applied data to ${component['name']}: ${elementData}');
+      }
+    }
+  }
+  
+  void _stopAnimation() {
+    setState(() {
+      _isPlaying = false;
+    });
+  }
+  
+  // Record keyframe when element properties change
+  void _recordKeyframe() {
+    print('_recordKeyframe called - Recording: $_isRecording, SelectedAnimation: $_selectedAnimationIndex, SelectedFrame: $_selectedFrame');
+    
+    if (!_isRecording || _selectedAnimationIndex == null || _selectedAnimationIndex! >= _animations.length) {
+      print('Recording aborted - conditions not met');
+      return;
+    }
+    
+    final animation = _animations[_selectedAnimationIndex!];
+    final keyframes = List<int>.from(animation['keyframes'] ?? []);
+    
+    // Always record data, even if keyframe already exists (to update current state)
+    final selectedElements = _screenComponents.where((c) => c['selected'] == true).toList();
+    print('Found ${selectedElements.length} selected elements');
+    
+    if (selectedElements.isNotEmpty) {
+      // Add current frame as keyframe if not already present
+      if (!keyframes.contains(_selectedFrame)) {
+        keyframes.add(_selectedFrame);
+        keyframes.sort();
+        animation['keyframes'] = keyframes;
+        print('Added keyframe at frame $_selectedFrame');
+      }
+      
+      // Store the current state of all selected elements at this frame
+      final frameData = <String, dynamic>{};
+      for (int i = 0; i < selectedElements.length; i++) {
+        final element = selectedElements[i];
+        frameData['element_$i'] = {
+          'position': element['position'],
+          'rotation': element['rotation'],
+          'scale': element['scale'],
+          'opacity': element['opacity'],
+          'name': element['name'], // Also store name for reference
+        };
+        print('Recorded data for ${element['name']}: pos=${element['position']}, rot=${element['rotation']}, scale=${element['scale']}, opacity=${element['opacity']}');
+      }
+      
+      // Store frame data in animation
+      if (animation['frame_data'] == null) {
+        animation['frame_data'] = <String, dynamic>{};
+      }
+      animation['frame_data']['frame_$_selectedFrame'] = frameData;
+      print('Saved frame data for frame $_selectedFrame');
+      
+      setState(() {
+        // Trigger UI update
+      });
+    } else {
+      print('No selected elements found - cannot record keyframe');
+    }
+  }
+
+  // Method to build selected animation settings (Loop and Speed Type only)
+  Widget _buildSelectedAnimationSettings(Map<String, dynamic> animation) {
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 24),
+          // Animation info header
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Animation: ${animation['name'] ?? 'Unnamed'}',
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.4),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                Icon(
+                  Icons.movie,
+                  color: Colors.white54,
+                  size: 18,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          
+          // Animation Settings Section
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: const Color(0xFF252525),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.settings, color: Colors.blue, size: 20),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Animation Settings',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                
+                // Loop Setting
+                _buildAnimationProperty(
+                  'Loop',
+                  animation['loop'] == true ? 'Enabled' : 'Disabled',
+                  Icons.repeat,
+                  () {
+                    setState(() {
+                      animation['loop'] = !(animation['loop'] ?? false);
+                    });
+                  },
+                ),
+                const SizedBox(height: 16),
+                
+                // Speed Type Setting
+                _buildAnimationProperty(
+                  'Speed Type',
+                  animation['speed_type'] ?? 'Normal',
+                  Icons.speed,
+                  () {
+                    _showSpeedTypeDialog(animation);
+                  },
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          
+          // Debug: Show saved keyframe data
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: const Color(0xFF252525),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.data_object, color: Colors.orange, size: 20),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Saved Keyframes Data',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                if (animation['keyframes'] != null && animation['keyframes'].isNotEmpty) ...[
+                  Text(
+                    'Keyframes: ${animation['keyframes'].join(', ')}',
+                    style: TextStyle(color: Colors.white70, fontSize: 12),
+                  ),
+                  const SizedBox(height: 8),
+                  if (animation['frame_data'] != null) ...[
+                    Text(
+                      'Frame Data:',
+                      style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold),
+                    ),
+                    ...((animation['frame_data'] as Map<String, dynamic>).entries.map((entry) {
+                      return Padding(
+                        padding: const EdgeInsets.only(left: 8, top: 4),
+                        child: Text(
+                          '${entry.key}: ${entry.value}',
+                          style: TextStyle(color: Colors.white54, fontSize: 10),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      );
+                    }).toList()),
+                  ],
+                ] else ...[
+                  Text(
+                    'No keyframes saved yet. Enable recording and click on timeline frames or modify element properties.',
+                    style: TextStyle(color: Colors.white54, fontSize: 12),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+        ],
+      ),
+    );
+  }
+
+  // Method to show speed type selection dialog
+  void _showSpeedTypeDialog(Map<String, dynamic> animation) {
+    final speedTypes = ['Slow', 'Normal', 'Fast', 'Custom'];
+    final currentSpeedType = animation['speed_type'] ?? 'Normal';
+    
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: const Color(0xFF232323),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          title: const Text('Select Speed Type', style: TextStyle(color: Colors.white)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: speedTypes.map((speedType) {
+              return ListTile(
+                title: Text(speedType, style: const TextStyle(color: Colors.white)),
+                leading: Radio<String>(
+                  value: speedType,
+                  groupValue: currentSpeedType,
+                  onChanged: (value) {
+                    setState(() {
+                      animation['speed_type'] = value;
+                    });
+                    Navigator.of(context).pop();
+                  },
+                  activeColor: Colors.blue,
+                ),
+              );
+            }).toList(),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // Method to build element animation view
+  Widget _buildElementAnimationView(Map<String, dynamic> component) {
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 24),
+          // Element info header
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Element: ${component['name'] ?? 'Unnamed'}',
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.4),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                Icon(
+                  Icons.widgets,
+                  color: Colors.white54,
+                  size: 18,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          
+          // Animation Properties Section
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: const Color(0xFF252525),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.play_arrow, color: Colors.blue, size: 20),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Animation Properties',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                
+                // Duration Setting
+                _buildAnimationProperty(
+                  'Duration',
+                  '${component['animation_duration'] ?? 1.0}s',
+                  Icons.schedule,
+                  () {
+                    // TODO: Show duration picker
+                  },
+                ),
+                const SizedBox(height: 12),
+                
+                // Delay Setting
+                _buildAnimationProperty(
+                  'Delay',
+                  '${component['animation_delay'] ?? 0.0}s',
+                  Icons.pause,
+                  () {
+                    // TODO: Show delay picker
+                  },
+                ),
+                const SizedBox(height: 12),
+                
+                // Easing Setting
+                _buildAnimationProperty(
+                  'Easing',
+                  component['animation_easing'] ?? 'ease-in-out',
+                  Icons.timeline,
+                  () {
+                    // TODO: Show easing picker
+                  },
+                ),
+                const SizedBox(height: 12),
+                
+                // Loop Setting
+                _buildAnimationProperty(
+                  'Loop',
+                  component['animation_loop'] == true ? 'Yes' : 'No',
+                  Icons.repeat,
+                  () {
+                    setState(() {
+                      component['animation_loop'] = !(component['animation_loop'] ?? false);
+                    });
+                  },
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          
+          // Transform Properties Section
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: const Color(0xFF252525),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.transform, color: Colors.green, size: 20),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Transform',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                
+                                 // Position X
+                 _buildSliderProperty(
+                   'Position X',
+                   component['position']?.dx ?? 0.0,
+                   -1000,
+                   1000,
+                   (value) {
+                     setState(() {
+                       final pos = component['position'] as Offset? ?? Offset.zero;
+                       component['position'] = Offset(value, pos.dy);
+                       _recordKeyframe(); // Record keyframe when position changes
+                     });
+                   },
+                 ),
+                const SizedBox(height: 12),
+                
+                                 // Position Y
+                 _buildSliderProperty(
+                   'Position Y',
+                   component['position']?.dy ?? 0.0,
+                   -1000,
+                   1000,
+                   (value) {
+                     setState(() {
+                       final pos = component['position'] as Offset? ?? Offset.zero;
+                       component['position'] = Offset(pos.dx, value);
+                       _recordKeyframe(); // Record keyframe when position changes
+                     });
+                   },
+                 ),
+                 const SizedBox(height: 12),
+                 
+                 // Scale
+                 _buildSliderProperty(
+                   'Scale',
+                   component['scale'] ?? 1.0,
+                   0.1,
+                   3.0,
+                   (value) {
+                     setState(() {
+                       component['scale'] = value;
+                       _recordKeyframe(); // Record keyframe when scale changes
+                     });
+                   },
+                 ),
+                 const SizedBox(height: 12),
+                 
+                 // Rotation
+                 _buildSliderProperty(
+                   'Rotation',
+                   component['rotation'] ?? 0.0,
+                   -180,
+                   180,
+                   (value) {
+                     setState(() {
+                       component['rotation'] = value;
+                       _recordKeyframe(); // Record keyframe when rotation changes
+                     });
+                   },
+                 ),
+                 const SizedBox(height: 12),
+                 
+                 // Opacity
+                 _buildSliderProperty(
+                   'Opacity',
+                   component['opacity'] ?? 1.0,
+                   0.0,
+                   1.0,
+                   (value) {
+                     setState(() {
+                       component['opacity'] = value;
+                       _recordKeyframe(); // Record keyframe when opacity changes
+                     });
+                   },
+                 ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+        ],
+      ),
+    );
+  }
+
+  // Helper widget to build animation property row
+  Widget _buildAnimationProperty(String label, String value, IconData icon, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: const Color(0xFF2D2D2D),
+          borderRadius: BorderRadius.circular(6),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, color: Colors.white54, size: 16),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                label,
+                style: TextStyle(
+                  color: Colors.white70,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Flexible(
+              child: Text(
+                value,
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w400,
+                ),
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.end,
+              ),
+            ),
+            const SizedBox(width: 4),
+            Icon(Icons.chevron_right, color: Colors.white54, size: 16),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Helper widget to build slider property
+  Widget _buildSliderProperty(String label, double value, double min, double max, Function(double) onChanged) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              label,
+              style: TextStyle(
+                color: Colors.white70,
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            Text(
+              value.toStringAsFixed(1),
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 14,
+                fontWeight: FontWeight.w400,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        SliderTheme(
+          data: SliderTheme.of(context).copyWith(
+            trackHeight: 2,
+            thumbShape: RoundSliderThumbShape(enabledThumbRadius: 6),
+            overlayShape: RoundSliderOverlayShape(overlayRadius: 14),
+            activeTrackColor: Colors.blue,
+            inactiveTrackColor: Colors.white24,
+            thumbColor: Colors.blue,
+            overlayColor: Colors.blue.withOpacity(0.2),
+          ),
+          child: Slider(
+            value: value.clamp(min, max),
+            min: min,
+            max: max,
+            onChanged: onChanged,
+          ),
+        ),
+      ],
+    );
+  }
+
   // Method to build component style view
   Widget _buildComponentStyleView(Map<String, dynamic> component) {
     final type = component['type'] as String;
@@ -6503,7 +7352,56 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                const SizedBox(width: 24),
+                const Spacer(),
+                // Recording toggle button
+                IconButton(
+                  icon: Icon(
+                    Icons.fiber_manual_record,
+                    color: _isRecording ? Colors.red : Colors.white54,
+                    size: 20,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _isRecording = !_isRecording;
+                    });
+                  },
+                  tooltip: _isRecording ? 'Stop Recording' : 'Start Recording',
+                ),
+                // Recording status indicator
+                if (_isRecording)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: Colors.red.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(4),
+                      border: Border.all(color: Colors.red, width: 1),
+                    ),
+                    child: Text(
+                      'REC',
+                      style: TextStyle(
+                        color: Colors.red,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                // Run animation button
+                IconButton(
+                  icon: Icon(
+                    _isPlaying ? Icons.pause : Icons.play_arrow,
+                    color: Colors.green,
+                    size: 20,
+                  ),
+                  onPressed: () {
+                    if (_isPlaying) {
+                      _stopAnimation();
+                    } else {
+                      _playAnimation();
+                    }
+                  },
+                  tooltip: _isPlaying ? 'Pause Animation' : 'Play Animation',
+                ),
+                const SizedBox(width: 16),
                 IconButton(
                   icon: Icon(Icons.skip_previous,
                       color: Colors.white70, size: 20),
@@ -6577,58 +7475,134 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                       left: 0,
                       right: 0,
                       height: timelineHeight,
-                      child: Row(
-                        children: List.generate(totalFrames, (i) {
-                          final isKey = keyframes.contains(i);
-                          final isPlayhead = i == playheadFrame;
-                          return GestureDetector(
-                            onTap: () {
-                              setState(() {
-                                if (isKey) {
-                                  keyframes.remove(i);
-                                } else {
-                                  keyframes.add(i);
-                                  keyframes.sort();
-                                }
-                                _animations[_selectedAnimationIndex!]
-                                    ['keyframes'] = keyframes;
-                              });
-                            },
-                            child: SizedBox(
-                              width: frameWidth,
-                              child: Stack(
-                                alignment: Alignment.center,
-                                children: [
-                                  if (isKey)
-                                    Icon(Icons.diamond,
-                                        size: 18, color: Colors.amber),
-                                  if (isPlayhead)
-                                    Positioned(
-                                      top: 0,
-                                      child: Container(
-                                        width: 4,
-                                        height: timelineHeight,
-                                        color: Colors.red,
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: List.generate(totalFrames, (i) {
+                            final isKey = keyframes.contains(i);
+                            final isPlayhead = i == playheadFrame;
+                            return GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  // Set the selected frame first
+                                  _selectedFrame = i;
+                                  
+                                  if (isKey) {
+                                    // Remove existing keyframe
+                                    keyframes.remove(i);
+                                    _animations[_selectedAnimationIndex!]['keyframes'] = keyframes;
+                                    
+                                    // Also remove frame data if it exists
+                                    final frameData = _animations[_selectedAnimationIndex!]['frame_data'];
+                                    if (frameData != null) {
+                                      frameData.remove('frame_$i');
+                                    }
+                                  } else {
+                                    // Add new keyframe
+                                    keyframes.add(i);
+                                    keyframes.sort();
+                                    _animations[_selectedAnimationIndex!]['keyframes'] = keyframes;
+                                    
+                                                                         // If recording is enabled, save current element state
+                                     if (_isRecording) {
+                                       print('Recording enabled - creating keyframe at frame $i');
+                                       final selectedElements = _screenComponents.where((c) => c['selected'] == true).toList();
+                                       if (selectedElements.isNotEmpty) {
+                                         print('Found ${selectedElements.length} selected elements to record');
+                                        final frameData = <String, dynamic>{};
+                                        for (int j = 0; j < selectedElements.length; j++) {
+                                          final element = selectedElements[j];
+                                          frameData['element_$j'] = {
+                                            'position': element['position'],
+                                            'rotation': element['rotation'],
+                                            'scale': element['scale'],
+                                            'opacity': element['opacity'],
+                                          };
+                                        }
+                                        
+                                        // Store frame data in animation
+                                        if (_animations[_selectedAnimationIndex!]['frame_data'] == null) {
+                                          _animations[_selectedAnimationIndex!]['frame_data'] = <String, dynamic>{};
+                                                                                 }
+                                         _animations[_selectedAnimationIndex!]['frame_data']['frame_$i'] = frameData;
+                                         print('Saved keyframe data for frame $i');
+                                       } else {
+                                         print('No elements selected - cannot record keyframe');
+                                       }
+                                     } else {
+                                       print('Recording disabled - keyframe created without element data');
+                                     }
+                                  }
+                                });
+                              },
+                              child: SizedBox(
+                                width: frameWidth,
+                                child: Stack(
+                                  alignment: Alignment.center,
+                                  children: [
+                                    if (isKey)
+                                      Draggable<int>(
+                                        data: i,
+                                        feedback: Icon(Icons.diamond,
+                                            size: 18, color: Colors.amber.withOpacity(0.8)),
+                                        childWhenDragging: Icon(Icons.diamond,
+                                            size: 18, color: Colors.amber.withOpacity(0.3)),
+                                        child: Icon(Icons.diamond,
+                                            size: 18, color: Colors.amber),
+                                        onDragEnd: (details) {
+                                          // Calculate new frame position based on drag end position
+                                          final RenderBox renderBox = context.findRenderObject() as RenderBox;
+                                          final localPosition = renderBox.globalToLocal(details.offset);
+                                          final newFrame = (localPosition.dx / frameWidth).round().clamp(0, totalFrames - 1);
+                                          
+                                          if (newFrame != i && !keyframes.contains(newFrame)) {
+                                            setState(() {
+                                              keyframes.remove(i);
+                                              keyframes.add(newFrame);
+                                              keyframes.sort();
+                                              _animations[_selectedAnimationIndex!]['keyframes'] = keyframes;
+                                              
+                                              // Move frame data if it exists
+                                              final frameData = _animations[_selectedAnimationIndex!]['frame_data'];
+                                              if (frameData != null) {
+                                                final oldFrameData = frameData['frame_$i'];
+                                                if (oldFrameData != null) {
+                                                  frameData['frame_$newFrame'] = oldFrameData;
+                                                  frameData.remove('frame_$i');
+                                                }
+                                              }
+                                            });
+                                          }
+                                        },
                                       ),
-                                    ),
-                                  if (isPlayhead)
-                                    Positioned(
-                                      bottom: 0,
-                                      child: Container(
-                                        width: frameWidth,
-                                        height: 24,
-                                        decoration: BoxDecoration(
-                                          color: Colors.red.withOpacity(0.2),
-                                          borderRadius:
-                                              BorderRadius.circular(4),
+                                    if (isPlayhead)
+                                      Positioned(
+                                        top: 0,
+                                        child: Container(
+                                          width: 4,
+                                          height: timelineHeight,
+                                          color: Colors.red,
                                         ),
                                       ),
-                                    ),
-                                ],
+                                    if (isPlayhead)
+                                      Positioned(
+                                        bottom: 0,
+                                        child: Container(
+                                          width: frameWidth,
+                                          height: 24,
+                                          decoration: BoxDecoration(
+                                            color: Colors.red.withOpacity(0.2),
+                                            borderRadius:
+                                                BorderRadius.circular(4),
+                                          ),
+                                        ),
+                                      ),
+                                  ],
+                                ),
                               ),
-                            ),
-                          );
-                        }),
+                            );
+                          }),
+                        ),
                       ),
                     ),
                     // Frame numbers (every 10 frames)
@@ -6637,21 +7611,24 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                       left: 0,
                       right: 0,
                       height: rulerHeight,
-                      child: Row(
-                        children: List.generate(totalFrames ~/ 10 + 1, (i) {
-                          return SizedBox(
-                            width: frameWidth * 10,
-                            child: Center(
-                              child: Text(
-                                '${i * 10}',
-                                style: TextStyle(
-                                  color: Colors.white.withOpacity(0.4),
-                                  fontSize: 12,
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: List.generate(totalFrames ~/ 10 + 1, (i) {
+                            return SizedBox(
+                              width: frameWidth * 10,
+                              child: Center(
+                                child: Text(
+                                  '${i * 10}',
+                                  style: TextStyle(
+                                    color: Colors.white.withOpacity(0.4),
+                                    fontSize: 12,
+                                  ),
                                 ),
                               ),
-                            ),
-                          );
-                        }),
+                            );
+                          }),
+                        ),
                       ),
                     ),
                   ],
