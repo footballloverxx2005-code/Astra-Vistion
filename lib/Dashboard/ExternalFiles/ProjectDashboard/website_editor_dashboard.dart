@@ -7220,6 +7220,24 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                   },
                   tooltip: _isRecording ? 'Stop Recording' : 'Start Recording',
                 ),
+                // Recording status indicator
+                if (_isRecording)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: Colors.red.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(4),
+                      border: Border.all(color: Colors.red, width: 1),
+                    ),
+                    child: Text(
+                      'REC',
+                      style: TextStyle(
+                        color: Colors.red,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
                 // Run animation button
                 IconButton(
                   icon: Icon(
@@ -7271,9 +7289,16 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
           ),
           // Timeline ruler and keyframes
           Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: GestureDetector(
+            child: Container(
+              decoration: BoxDecoration(
+                border: _isRecording 
+                    ? Border.all(color: Colors.red.withOpacity(0.5), width: 2)
+                    : null,
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: GestureDetector(
                 behavior: HitTestBehavior.opaque,
                 onHorizontalDragUpdate: (details) {
                   final local = details.localPosition.dx;
@@ -7319,14 +7344,55 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                             return GestureDetector(
                               onTap: () {
                                 setState(() {
+                                  // Set the selected frame first
+                                  _selectedFrame = i;
+                                  
                                   if (isKey) {
+                                    // Remove existing keyframe
                                     keyframes.remove(i);
+                                    _animations[_selectedAnimationIndex!]['keyframes'] = keyframes;
+                                    
+                                    // Also remove frame data if it exists
+                                    final frameData = _animations[_selectedAnimationIndex!]['frame_data'];
+                                    if (frameData != null) {
+                                      frameData.remove('frame_$i');
+                                    }
                                   } else {
+                                    // Add new keyframe
                                     keyframes.add(i);
                                     keyframes.sort();
+                                    _animations[_selectedAnimationIndex!]['keyframes'] = keyframes;
+                                    
+                                                                         // If recording is enabled, save current element state
+                                     if (_isRecording) {
+                                       print('Recording enabled - creating keyframe at frame $i');
+                                       final selectedElements = _screenComponents.where((c) => c['selected'] == true).toList();
+                                       if (selectedElements.isNotEmpty) {
+                                         print('Found ${selectedElements.length} selected elements to record');
+                                        final frameData = <String, dynamic>{};
+                                        for (int j = 0; j < selectedElements.length; j++) {
+                                          final element = selectedElements[j];
+                                          frameData['element_$j'] = {
+                                            'position': element['position'],
+                                            'rotation': element['rotation'],
+                                            'scale': element['scale'],
+                                            'opacity': element['opacity'],
+                                          };
+                                        }
+                                        
+                                        // Store frame data in animation
+                                        if (_animations[_selectedAnimationIndex!]['frame_data'] == null) {
+                                          _animations[_selectedAnimationIndex!]['frame_data'] = <String, dynamic>{};
+                                                                                 }
+                                         _animations[_selectedAnimationIndex!]['frame_data']['frame_$i'] = frameData;
+                                         print('Saved keyframe data for frame $i');
+                                       } else {
+                                         print('No elements selected - cannot record keyframe');
+                                       }
+                                     } else {
+                                       print('Recording disabled - keyframe created without element data');
+                                     }
                                   }
-                                  _animations[_selectedAnimationIndex!]
-                                      ['keyframes'] = keyframes;
                                 });
                               },
                               child: SizedBox(
