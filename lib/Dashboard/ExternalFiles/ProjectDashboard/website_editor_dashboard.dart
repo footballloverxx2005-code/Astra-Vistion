@@ -7289,16 +7289,9 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
           ),
           // Timeline ruler and keyframes
           Expanded(
-            child: Container(
-              decoration: BoxDecoration(
-                border: _isRecording 
-                    ? Border.all(color: Colors.red.withOpacity(0.5), width: 2)
-                    : null,
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: GestureDetector(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: GestureDetector(
                 behavior: HitTestBehavior.opaque,
                 onHorizontalDragUpdate: (details) {
                   final local = details.localPosition.dx;
