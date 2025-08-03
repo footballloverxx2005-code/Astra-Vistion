@@ -7775,7 +7775,7 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                           children: List.generate(totalFrames, (i) {
                             final isKey = keyframes.contains(i);
                             final isPlayhead = i == playheadFrame;
-                                                          return GestureDetector(
+                            return GestureDetector(
                                 onTap: () {
                                   setState(() {
                                     // Set the selected frame first
@@ -7830,63 +7830,11 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                                   });
                                 },
                                 onDoubleTap: () {
-                                if (isKey && _hasKeyframeData(i)) {
-                                  _showKeyframeDetails(i);
-                                }
-                              },
-                                setState(() {
-                                  // Set the selected frame first
-                                  _selectedFrame = i;
-                                  
-                                  if (isKey) {
-                                    // Remove existing keyframe
-                                    keyframes.remove(i);
-                                    _animations[_selectedAnimationIndex!]['keyframes'] = keyframes;
-                                    
-                                    // Also remove frame data if it exists
-                                    final frameData = _animations[_selectedAnimationIndex!]['frame_data'];
-                                    if (frameData != null) {
-                                      frameData.remove('frame_$i');
-                                    }
-                                  } else {
-                                    // Add new keyframe
-                                    keyframes.add(i);
-                                    keyframes.sort();
-                                    _animations[_selectedAnimationIndex!]['keyframes'] = keyframes;
-                                    
-                                                                         // If recording is enabled, save current element state
-                                     if (_isRecording) {
-                                       print('Recording enabled - creating keyframe at frame $i');
-                                       final selectedElements = _screenComponents.where((c) => c['selected'] == true).toList();
-                                       if (selectedElements.isNotEmpty) {
-                                         print('Found ${selectedElements.length} selected elements to record');
-                                        final frameData = <String, dynamic>{};
-                                        for (int j = 0; j < selectedElements.length; j++) {
-                                          final element = selectedElements[j];
-                                          frameData['element_$j'] = {
-                                            'position': element['position'],
-                                            'rotation': element['rotation'],
-                                            'scale': element['scale'],
-                                            'opacity': element['opacity'],
-                                          };
-                                        }
-                                        
-                                        // Store frame data in animation
-                                        if (_animations[_selectedAnimationIndex!]['frame_data'] == null) {
-                                          _animations[_selectedAnimationIndex!]['frame_data'] = <String, dynamic>{};
-                                                                                 }
-                                         _animations[_selectedAnimationIndex!]['frame_data']['frame_$i'] = frameData;
-                                         print('Saved keyframe data for frame $i');
-                                       } else {
-                                         print('No elements selected - cannot record keyframe');
-                                       }
-                                     } else {
-                                       print('Recording disabled - keyframe created without element data');
-                                     }
+                                  if (isKey && _hasKeyframeData(i)) {
+                                    _showKeyframeDetails(i);
                                   }
-                                });
-                              },
-                              child: SizedBox(
+                                },
+                                child: SizedBox(
                                 width: frameWidth,
                                 child: Stack(
                                   alignment: Alignment.center,
