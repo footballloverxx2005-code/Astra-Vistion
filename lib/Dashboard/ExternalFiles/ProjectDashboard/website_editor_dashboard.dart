@@ -3861,11 +3861,16 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
         return;
       }
       
-      setState(() {
-        _selectedFrame = _currentPlaybackFrame;
-        // Apply interpolated data for current frame
-        _applyInterpolatedFrameData(_currentPlaybackFrame, keyframes);
-      });
+              setState(() {
+          _selectedFrame = _currentPlaybackFrame;
+          // Apply interpolated data for current frame
+          try {
+            _applyInterpolatedFrameData(_currentPlaybackFrame, keyframes);
+          } catch (e) {
+            print('Error applying interpolated frame data: $e');
+            // Continue animation even if one frame fails
+          }
+        });
       
       _currentPlaybackFrame++;
     });
@@ -3885,7 +3890,7 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
       return;
     }
     
-    final currentFrameData = frameData['frame_$frame'];
+    final currentFrameData = frameData['frame_$frame'] as Map<String, dynamic>?;
     if (currentFrameData == null) {
       print('No data found for frame $frame');
       return;
@@ -3895,7 +3900,7 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
     
     // Apply data to elements using IDs
     currentFrameData.forEach((elementId, elementData) {
-      if (elementData is Map<String, dynamic>) {
+      if (elementId is String && elementData is Map<String, dynamic>) {
         // Find the component with matching ID
         final componentIndex = _screenComponents.indexWhere((c) => c['id'] == elementId);
         if (componentIndex != -1) {
@@ -3972,8 +3977,8 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
     }
     
     // Get data for both keyframes
-    final prevFrameData = frameData['frame_$prevKeyframe'];
-    final nextFrameData = frameData['frame_$nextKeyframe'];
+    final prevFrameData = frameData['frame_$prevKeyframe'] as Map<String, dynamic>?;
+    final nextFrameData = frameData['frame_$nextKeyframe'] as Map<String, dynamic>?;
     
     if (prevFrameData == null || nextFrameData == null) {
       return;
@@ -3987,7 +3992,12 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
     
     // Apply interpolated data to elements using IDs
     // Get all element IDs that exist in both frames
-    final commonIds = prevFrameData.keys.where((id) => nextFrameData.containsKey(id)).toList();
+    final commonIds = <String>[];
+    for (final id in prevFrameData.keys) {
+      if (id is String && nextFrameData.containsKey(id)) {
+        commonIds.add(id);
+      }
+    }
     
     for (final elementId in commonIds) {
       final prevElementData = prevFrameData[elementId];
