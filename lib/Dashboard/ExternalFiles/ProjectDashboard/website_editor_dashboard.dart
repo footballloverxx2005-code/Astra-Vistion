@@ -12,6 +12,39 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/painting.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+// Custom painter for node grid background
+class NodeGridPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.white.withOpacity(0.1)
+      ..strokeWidth = 1;
+
+    const double gridSize = 20;
+
+    // Draw vertical lines
+    for (double x = 0; x <= size.width; x += gridSize) {
+      canvas.drawLine(
+        Offset(x, 0),
+        Offset(x, size.height),
+        paint,
+      );
+    }
+
+    // Draw horizontal lines
+    for (double y = 0; y <= size.height; y += gridSize) {
+      canvas.drawLine(
+        Offset(0, y),
+        Offset(size.width, y),
+        paint,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
 class ScreenSettings {
   double width;
   double height;
@@ -221,6 +254,11 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
 
   // 1. Add state for selected animation
   int? _selectedAnimationIndex;
+  
+  // Nodes system
+  List<Map<String, dynamic>> _nodes = [];
+  int? _selectedNodeIndex;
+  bool _showNodesPage = false;
 
   // 1. Add state for selected frame and per-animation keyframes
   int _selectedFrame = 0;
@@ -320,9 +358,399 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
       } else if (value == 'delete') {
         _deleteElementWithConfirmation(elementIndex);
       }
-        });
+                });
   }
-  
+
+  // Open nodes system for an element
+  void _openNodesSystem(Map<String, dynamic> component) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => _buildNodesSystemDialog(component),
+    );
+  }
+
+  // Build nodes system dialog (Blender-like interface)
+  Widget _buildNodesSystemDialog(Map<String, dynamic> component) {
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      insetPadding: EdgeInsets.all(20),
+      child: Container(
+        width: MediaQuery.of(context).size.width * 0.9,
+        height: MediaQuery.of(context).size.height * 0.9,
+        decoration: BoxDecoration(
+          color: Color(0xFF1C1C1C),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.white24),
+        ),
+        child: Column(
+          children: [
+            // Header
+            Container(
+              padding: EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Color(0xFF2D2D2D),
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(12),
+                  topRight: Radius.circular(12),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.account_tree, color: Colors.green, size: 24),
+                  SizedBox(width: 12),
+                  Text(
+                    'Node Editor - ${component['name'] ?? 'Element'}',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Spacer(),
+                  IconButton(
+                    icon: Icon(Icons.close, color: Colors.white),
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                ],
+              ),
+            ),
+            // Node editor area
+            Expanded(
+              child: Container(
+                padding: EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    // Left panel - Node library
+                    Container(
+                      width: 200,
+                      decoration: BoxDecoration(
+                        color: Color(0xFF232323),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: EdgeInsets.all(12),
+                            child: Text(
+                              'Node Library',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            child: ListView(
+                              children: [
+                                _buildNodeLibraryCategory('Input', [
+                                  {'name': 'Mouse Input', 'icon': Icons.mouse},
+                                  {'name': 'Keyboard Input', 'icon': Icons.keyboard},
+                                  {'name': 'Time', 'icon': Icons.access_time},
+                                ]),
+                                _buildNodeLibraryCategory('Math', [
+                                  {'name': 'Add', 'icon': Icons.add},
+                                  {'name': 'Multiply', 'icon': Icons.close},
+                                  {'name': 'Compare', 'icon': Icons.compare_arrows},
+                                ]),
+                                _buildNodeLibraryCategory('Animation', [
+                                  {'name': 'Move', 'icon': Icons.open_with},
+                                  {'name': 'Rotate', 'icon': Icons.rotate_right},
+                                  {'name': 'Scale', 'icon': Icons.zoom_out_map},
+                                ]),
+                                _buildNodeLibraryCategory('Effects', [
+                                  {'name': 'Color Change', 'icon': Icons.palette},
+                                  {'name': 'Opacity', 'icon': Icons.opacity},
+                                  {'name': 'Shadow', 'icon': Icons.blur_on},
+                                ]),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(width: 16),
+                    // Main node canvas
+                    Expanded(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Color(0xFF151515),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.white12),
+                        ),
+                        child: Stack(
+                          children: [
+                            // Grid background
+                            CustomPaint(
+                              painter: NodeGridPainter(),
+                              size: Size.infinite,
+                            ),
+                            // Node canvas content
+                            Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.account_tree,
+                                    color: Colors.white24,
+                                    size: 64,
+                                  ),
+                                  SizedBox(height: 16),
+                                  Text(
+                                    'Node Canvas',
+                                    style: TextStyle(
+                                      color: Colors.white24,
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  SizedBox(height: 8),
+                                  Text(
+                                    'Drag nodes from the library to create logic',
+                                    style: TextStyle(
+                                      color: Colors.white24,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            // Footer with controls
+            Container(
+              padding: EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Color(0xFF2D2D2D),
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(12),
+                  bottomRight: Radius.circular(12),
+                ),
+              ),
+              child: Row(
+                children: [
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      // Add logic to save node setup
+                      Navigator.of(context).pop();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Node setup saved for ${component['name']}'),
+                          backgroundColor: Colors.green,
+                        ),
+                      );
+                    },
+                    icon: Icon(Icons.save),
+                    label: Text('Save'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green,
+                      foregroundColor: Colors.white,
+                    ),
+                  ),
+                  SizedBox(width: 12),
+                  OutlinedButton.icon(
+                    onPressed: () {
+                      // Add logic to clear all nodes
+                    },
+                    icon: Icon(Icons.clear_all),
+                    label: Text('Clear All'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.white,
+                      side: BorderSide(color: Colors.white24),
+                    ),
+                  ),
+                  Spacer(),
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: Text(
+                      'Cancel',
+                      style: TextStyle(color: Colors.white70),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+         );
+   }
+
+   // Build nodes page overlay
+   Widget _buildNodesPage() {
+     return Container(
+       color: Color(0xFF151515),
+       child: Column(
+         children: [
+           // Header
+           Container(
+             padding: EdgeInsets.all(16),
+             decoration: BoxDecoration(
+               color: Color(0xFF2D2D2D),
+               border: Border(bottom: BorderSide(color: Colors.white24)),
+             ),
+             child: Row(
+               children: [
+                 Icon(Icons.account_tree, color: Colors.green, size: 24),
+                 SizedBox(width: 12),
+                 Text(
+                   'Nodes Editor',
+                   style: TextStyle(
+                     color: Colors.white,
+                     fontSize: 24,
+                     fontWeight: FontWeight.bold,
+                   ),
+                 ),
+                 Spacer(),
+                 IconButton(
+                   icon: Icon(Icons.close, color: Colors.white),
+                   onPressed: () {
+                     setState(() {
+                       _showNodesPage = false;
+                     });
+                   },
+                 ),
+               ],
+             ),
+           ),
+           // Content
+           Expanded(
+             child: Padding(
+               padding: EdgeInsets.all(40),
+               child: Column(
+                 mainAxisAlignment: MainAxisAlignment.center,
+                 children: [
+                   Icon(
+                     Icons.account_tree,
+                     color: Colors.green,
+                     size: 120,
+                   ),
+                   SizedBox(height: 32),
+                   Text(
+                     'Please open a node file',
+                     style: TextStyle(
+                       color: Colors.white,
+                       fontSize: 28,
+                       fontWeight: FontWeight.bold,
+                     ),
+                   ),
+                   SizedBox(height: 16),
+                   Text(
+                     'To get started with the nodes system, please open a node file from your project.',
+                     style: TextStyle(
+                       color: Colors.white70,
+                       fontSize: 16,
+                     ),
+                     textAlign: TextAlign.center,
+                   ),
+                   SizedBox(height: 32),
+                   Row(
+                     mainAxisAlignment: MainAxisAlignment.center,
+                     children: [
+                       ElevatedButton.icon(
+                         onPressed: () {
+                           // TODO: Implement file picker for node files
+                           ScaffoldMessenger.of(context).showSnackBar(
+                             SnackBar(
+                               content: Text('File picker not yet implemented'),
+                               backgroundColor: Colors.orange,
+                             ),
+                           );
+                         },
+                         icon: Icon(Icons.folder_open),
+                         label: Text('Open Node File'),
+                         style: ElevatedButton.styleFrom(
+                           backgroundColor: Colors.green,
+                           foregroundColor: Colors.white,
+                           padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                         ),
+                       ),
+                       SizedBox(width: 16),
+                       OutlinedButton.icon(
+                         onPressed: () {
+                           // TODO: Implement new node file creation
+                           ScaffoldMessenger.of(context).showSnackBar(
+                             SnackBar(
+                               content: Text('Creating new node file...'),
+                               backgroundColor: Colors.blue,
+                             ),
+                           );
+                         },
+                         icon: Icon(Icons.add),
+                         label: Text('Create New'),
+                         style: OutlinedButton.styleFrom(
+                           foregroundColor: Colors.white,
+                           side: BorderSide(color: Colors.white24),
+                           padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                         ),
+                       ),
+                     ],
+                   ),
+                 ],
+               ),
+             ),
+           ),
+         ],
+       ),
+     );
+   }
+
+   // Build node library category
+  Widget _buildNodeLibraryCategory(String title, List<Map<String, dynamic>> nodes) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          child: Text(
+            title,
+            style: TextStyle(
+              color: Colors.white70,
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+        ...nodes.map((node) => Container(
+          margin: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+          child: ListTile(
+            dense: true,
+            leading: Icon(
+              node['icon'] as IconData,
+              color: Colors.white54,
+              size: 18,
+            ),
+            title: Text(
+              node['name'] as String,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 12,
+              ),
+            ),
+            onTap: () {
+              // Handle node selection/drag
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('${node['name']} node selected'),
+                  duration: Duration(milliseconds: 1000),
+                ),
+              );
+            },
+          ),
+        )).toList(),
+        SizedBox(height: 8),
+      ],
+    );
+  }
+
   // Rename animation dialog
   void _renameAnimation(int animationIndex) {
     if (animationIndex < 0 || animationIndex >= _animations.length) return;
@@ -606,6 +1034,24 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
         'rotation': 0.0,
         'scale': 1.0,
         'opacity': 1.0,
+        'nodeActions': [
+          {
+            'id': 'hover_effect',
+            'name': 'Hover Effect',
+            'type': 'interaction',
+            'trigger': 'onHover',
+            'action': 'scale',
+            'value': 1.2,
+          },
+          {
+            'id': 'click_rotate',
+            'name': 'Click Rotate',
+            'type': 'interaction', 
+            'trigger': 'onClick',
+            'action': 'rotate',
+            'value': 45,
+          }
+        ],
       },
       {
         'id': _generateElementId('text'),
@@ -816,6 +1262,14 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
 
   @override
   Widget build(BuildContext context) {
+    // Show nodes page if enabled
+    if (_showNodesPage) {
+      return Scaffold(
+        backgroundColor: const Color(0xFF151515),
+        body: _buildNodesPage(),
+      );
+    }
+    
     return Scaffold(
       backgroundColor: const Color(0xFF151515),
       body: Shortcuts(
@@ -854,7 +1308,7 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                                 ),
                                 child: Column(
                                   children: [
-                                    // Top half: Added elements
+                                    // First third: Added elements
                                     Expanded(
                                       child: Column(
                                         crossAxisAlignment:
@@ -884,6 +1338,13 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                                                       index,
                                                     );
                                                   },
+                                                  onDoubleTap: () {
+                                                    // Check if element has node actions
+                                                    if (component['nodeActions'] != null && 
+                                                        component['nodeActions'].length > 0) {
+                                                      _openNodesSystem(component);
+                                                    }
+                                                  },
                                                   child: ListTile(
                                                     title: Text(
                                                         component['name'] ??
@@ -899,8 +1360,17 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                                                          color: component['selected'] == true 
                                                              ? Colors.blue 
                                                              : Colors.white54),
-                                                     trailing: Icon(Icons.more_vert, 
-                                                         color: Colors.white24, size: 16),
+                                                     trailing: Row(
+                                                       mainAxisSize: MainAxisSize.min,
+                                                       children: [
+                                                         if (component['nodeActions'] != null && 
+                                                             component['nodeActions'].length > 0)
+                                                           Icon(Icons.account_tree, 
+                                                               color: Colors.green, size: 14),
+                                                         Icon(Icons.more_vert, 
+                                                             color: Colors.white24, size: 16),
+                                                       ],
+                                                     ),
                                                      selected: component['selected'] == true,
                                                     selectedTileColor: Colors.blue.withOpacity(0.2),
                                                     onTap: () {
@@ -926,7 +1396,7 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                                     // Divider
                                     Container(
                                         height: 1, color: Color(0xFF222222)),
-                                    // Bottom half: Animations list and plus button
+                                    // Second third: Animations list and plus button
                                     Expanded(
                                       child: Column(
                                         crossAxisAlignment:
@@ -1077,6 +1547,69 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                                                       });
                                                     },
                                                   ),
+                                                );
+                                              },
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    // Divider
+                                    Container(
+                                        height: 1, color: Color(0xFF222222)),
+                                    // Third third: Nodes list and plus button
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Padding(
+                                            padding: const EdgeInsets.all(8.0),
+                                            child: Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
+                                              children: [
+                                                Text('Nodes',
+                                                    style: TextStyle(
+                                                        color: Colors.white,
+                                                        fontSize: 16,
+                                                        fontWeight:
+                                                            FontWeight.bold)),
+                                                IconButton(
+                                                  icon: Icon(Icons.account_tree,
+                                                      color: Colors.white),
+                                                  onPressed: () {
+                                                    setState(() {
+                                                      _showNodesPage = true;
+                                                    });
+                                                  },
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          Expanded(
+                                            child: ListView.builder(
+                                              itemCount: _nodes.length,
+                                              itemBuilder: (context, index) {
+                                                final node = _nodes[index];
+                                                return ListTile(
+                                                  title: Text(
+                                                      node['name'] ??
+                                                          'Node',
+                                                      style: TextStyle(
+                                                          color: Colors.white)),
+                                                  leading: Icon(Icons.account_tree,
+                                                      color: Colors.white54),
+                                                  trailing: Icon(Icons.more_vert, 
+                                                      color: Colors.white24, size: 16),
+                                                  selected: _selectedNodeIndex == index,
+                                                  selectedTileColor: Colors.green.withOpacity(0.2),
+                                                  onTap: () {
+                                                    setState(() {
+                                                      _selectedNodeIndex = index;
+                                                    });
+                                                  },
                                                 );
                                               },
                                             ),
@@ -8826,4 +9359,3 @@ class _TimelineRulerPainter extends CustomPainter {
 
 
 
-fix this error
