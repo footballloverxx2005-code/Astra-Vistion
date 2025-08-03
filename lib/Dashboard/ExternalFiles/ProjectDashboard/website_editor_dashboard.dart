@@ -3933,10 +3933,20 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                   ...data.entries.map((entry) {
                     final elementData = entry.value as Map<String, dynamic>;
                     final elementName = elementData['name'] ?? 'Unknown';
-                    final position = elementData['position'] ?? [0.0, 0.0];
+                    final position = elementData['position'];
                     final rotation = elementData['rotation'] ?? 0.0;
                     final scale = elementData['scale'] ?? 1.0;
                     final opacity = elementData['opacity'] ?? 1.0;
+                    
+                    // Handle position as either Offset or array
+                    String positionText;
+                    if (position is Offset) {
+                      positionText = 'Position: (${position.dx.toStringAsFixed(1)}, ${position.dy.toStringAsFixed(1)})';
+                    } else if (position is List && position.length >= 2) {
+                      positionText = 'Position: (${position[0].toStringAsFixed(1)}, ${position[1].toStringAsFixed(1)})';
+                    } else {
+                      positionText = 'Position: (0.0, 0.0)';
+                    }
                     
                     return Container(
                       margin: const EdgeInsets.only(bottom: 12),
@@ -3959,7 +3969,7 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'Position: (${position[0].toStringAsFixed(1)}, ${position[1].toStringAsFixed(1)})',
+                            positionText,
                             style: const TextStyle(color: Colors.white70, fontSize: 12),
                           ),
                           Text(
@@ -4039,9 +4049,18 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
     data.forEach((key, value) {
       if (value is Map<String, dynamic>) {
         final elementName = value['name'] ?? 'Unknown';
-        final position = value['position'] ?? [0.0, 0.0];
+        final position = value['position'];
         tooltip += '\n$elementName:\n';
-        tooltip += '  Position: (${position[0].toStringAsFixed(1)}, ${position[1].toStringAsFixed(1)})\n';
+        
+        // Handle position as either Offset or array
+        if (position is Offset) {
+          tooltip += '  Position: (${position.dx.toStringAsFixed(1)}, ${position.dy.toStringAsFixed(1)})\n';
+        } else if (position is List && position.length >= 2) {
+          tooltip += '  Position: (${position[0].toStringAsFixed(1)}, ${position[1].toStringAsFixed(1)})\n';
+        } else {
+          tooltip += '  Position: (0.0, 0.0)\n';
+        }
+        
         tooltip += '  Rotation: ${(value['rotation'] ?? 0.0).toStringAsFixed(1)}°\n';
         tooltip += '  Scale: ${(value['scale'] ?? 1.0).toStringAsFixed(2)}\n';
         tooltip += '  Opacity: ${(value['opacity'] ?? 1.0).toStringAsFixed(2)}';
@@ -7567,19 +7586,26 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
           // Animation name and controls
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-            child: Row(
-              children: [
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
                 Icon(Icons.movie, color: Colors.blue, size: 22),
                 const SizedBox(width: 8),
-                Text(
-                  anim['name'] ?? 'Animation',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 200),
+                  child: Text(
+                    anim['name'] ?? 'Animation',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                const Spacer(),
+                const SizedBox(width: 8),
                 // Recording toggle button
                 IconButton(
                   icon: Icon(
@@ -7723,9 +7749,10 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                     });
                   },
                 ),
-                const Spacer(),
+                const SizedBox(width: 16),
                 Icon(Icons.settings, color: Colors.white24, size: 20),
-              ],
+                ],
+              ),
             ),
           ),
           // Timeline ruler and keyframes
