@@ -810,8 +810,8 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                                 ]),
                                 _buildNodeLibraryCategory('Logic', [
                                   {'name': 'If/Else', 'icon': Icons.call_split},
-                                  {'name': 'And', 'icon': Icons.and},
-                                  {'name': 'Or', 'icon': Icons.or},
+                                  {'name': 'And', 'icon': Icons.join_inner},
+                                  {'name': 'Or', 'icon': Icons.join_full},
                                   {'name': 'Not', 'icon': Icons.not_interested},
                                 ]),
                                 _buildNodeLibraryCategory('Animation', [
