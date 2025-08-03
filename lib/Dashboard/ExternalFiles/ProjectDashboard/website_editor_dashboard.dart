@@ -233,6 +233,11 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
   Timer? _animationTimer;
   int _currentPlaybackFrame = 0;
   double _animationSpeed = 1.0; // Speed multiplier (1.0 = normal speed)
+  
+  // Helper method to generate unique IDs for elements
+  String _generateElementId(String type) {
+    return '${type}_${DateTime.now().millisecondsSinceEpoch}_${_screenComponents.length}';
+  }
 
   @override
   void initState() {
@@ -246,6 +251,7 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
     // Add sample elements for testing keyframe functionality
     _screenComponents.addAll([
       {
+        'id': _generateElementId('container'),
         'type': 'container',
         'name': 'Test Container',
         'position': Offset(100, 100),
@@ -258,6 +264,7 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
         'opacity': 1.0,
       },
       {
+        'id': _generateElementId('text'),
         'type': 'text',
         'name': 'Test Text',
         'position': Offset(200, 150),
@@ -3886,29 +3893,34 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
     
     print('Applying keyframe data for frame $frame');
     
-    // Apply data to elements
-    for (int i = 0; i < _screenComponents.length; i++) {
-      final elementData = currentFrameData['element_$i'];
-      if (elementData != null) {
-        final component = _screenComponents[i];
-        
-        // Update element properties (only if not null)
-        if (elementData['position'] != null) {
-          component['position'] = elementData['position'];
+    // Apply data to elements using IDs
+    currentFrameData.forEach((elementId, elementData) {
+      if (elementData is Map<String, dynamic>) {
+        // Find the component with matching ID
+        final componentIndex = _screenComponents.indexWhere((c) => c['id'] == elementId);
+        if (componentIndex != -1) {
+          final component = _screenComponents[componentIndex];
+          
+          // Update element properties (only if not null)
+          if (elementData['position'] != null) {
+            component['position'] = elementData['position'];
+          }
+          if (elementData['rotation'] != null) {
+            component['rotation'] = elementData['rotation'];
+          }
+          if (elementData['scale'] != null) {
+            component['scale'] = elementData['scale'];
+          }
+          if (elementData['opacity'] != null) {
+            component['opacity'] = elementData['opacity'];
+          }
+          
+          print('Applied data to ${component['name']} (ID: $elementId): ${elementData}');
+        } else {
+          print('Warning: Could not find component with ID: $elementId');
         }
-        if (elementData['rotation'] != null) {
-          component['rotation'] = elementData['rotation'];
-        }
-        if (elementData['scale'] != null) {
-          component['scale'] = elementData['scale'];
-        }
-        if (elementData['opacity'] != null) {
-          component['opacity'] = elementData['opacity'];
-        }
-        
-        print('Applied data to ${component['name']}: ${elementData}');
       }
-    }
+    });
   }
   
   // Apply interpolated frame data between keyframes
@@ -3973,13 +3985,19 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
       t = (currentFrame - prevKeyframe!) / (nextKeyframe! - prevKeyframe!);
     }
     
-    // Apply interpolated data to elements
-    for (int i = 0; i < _screenComponents.length; i++) {
-      final prevElementData = prevFrameData['element_$i'];
-      final nextElementData = nextFrameData['element_$i'];
+    // Apply interpolated data to elements using IDs
+    // Get all element IDs that exist in both frames
+    final commonIds = prevFrameData.keys.where((id) => nextFrameData.containsKey(id)).toList();
+    
+    for (final elementId in commonIds) {
+      final prevElementData = prevFrameData[elementId];
+      final nextElementData = nextFrameData[elementId];
       
-      if (prevElementData != null && nextElementData != null) {
-        final component = _screenComponents[i];
+      if (prevElementData is Map<String, dynamic> && nextElementData is Map<String, dynamic>) {
+        // Find the component with matching ID
+        final componentIndex = _screenComponents.indexWhere((c) => c['id'] == elementId);
+        if (componentIndex != -1) {
+          final component = _screenComponents[componentIndex];
         
         // Interpolate position
         final prevPos = prevElementData['position'];
@@ -4019,6 +4037,9 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
         if (prevOpacity != null && nextOpacity != null) {
           component['opacity'] = prevOpacity + (nextOpacity - prevOpacity) * t;
         }
+        } else {
+          print('Warning: Could not find component with ID: $elementId for interpolation');
+        }
       }
     }
   }
@@ -4054,7 +4075,7 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
     }
   }
   
-  // Show keyframe details dialog
+  // Show enhanced keyframe settings dialog
   void _showKeyframeDetails(int frame) {
     if (_selectedAnimationIndex == null || _selectedAnimationIndex! >= _animations.length) {
       return;
@@ -4064,6 +4085,8 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
     final frameData = animation['frame_data'] as Map<String, dynamic>?;
     
     if (frameData == null || !frameData.containsKey('frame_$frame')) {
+      // Show empty keyframe dialog
+      _showEmptyKeyframeDialog(frame);
       return;
     }
     
@@ -4074,25 +4097,66 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
       builder: (BuildContext context) {
         return AlertDialog(
           backgroundColor: const Color(0xFF252525),
-          title: Text(
-            'Keyframe Details - Frame $frame',
-            style: const TextStyle(color: Colors.white),
+          title: Row(
+            children: [
+              Icon(Icons.settings, color: Colors.amber, size: 20),
+              const SizedBox(width: 8),
+              Text(
+                'Keyframe Settings - Frame $frame',
+                style: const TextStyle(color: Colors.white, fontSize: 18),
+              ),
+            ],
           ),
           content: SizedBox(
-            width: 400,
-            height: 300,
+            width: 500,
+            height: 400,
             child: SingleChildScrollView(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Elements: ${data.length}',
-                    style: const TextStyle(color: Colors.white70, fontSize: 16),
+                  // Animation info
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1A1A1A),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.blue.withOpacity(0.3)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(Icons.movie, color: Colors.blue, size: 16),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Animation: ${animation['name'] ?? 'Unnamed'}',
+                              style: const TextStyle(color: Colors.blue, fontSize: 14, fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Frame: $frame • Elements: ${data.length}',
+                          style: const TextStyle(color: Colors.white70, fontSize: 12),
+                        ),
+                      ],
+                    ),
                   ),
                   const SizedBox(height: 16),
+                  
+                  // Container elements
+                  Text(
+                    'Animated Elements:',
+                    style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 12),
+                  
                   ...data.entries.map((entry) {
+                    final elementId = entry.key;
                     final elementData = entry.value as Map<String, dynamic>;
                     final elementName = elementData['name'] ?? 'Unknown';
+                    final elementType = elementData['type'] ?? 'unknown';
                     final position = elementData['position'];
                     final rotation = elementData['rotation'] ?? 0.0;
                     final scale = elementData['scale'] ?? 1.0;
@@ -4101,48 +4165,105 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                     // Handle position as either Offset or array
                     String positionText;
                     if (position is Offset) {
-                      positionText = 'Position: (${position.dx.toStringAsFixed(1)}, ${position.dy.toStringAsFixed(1)})';
+                      positionText = '(${position.dx.toStringAsFixed(1)}, ${position.dy.toStringAsFixed(1)})';
                     } else if (position is List && position.length >= 2) {
-                      positionText = 'Position: (${position[0].toStringAsFixed(1)}, ${position[1].toStringAsFixed(1)})';
+                      positionText = '(${position[0].toStringAsFixed(1)}, ${position[1].toStringAsFixed(1)})';
                     } else {
-                      positionText = 'Position: (0.0, 0.0)';
+                      positionText = '(0.0, 0.0)';
+                    }
+                    
+                    // Get type icon
+                    IconData typeIcon;
+                    Color typeColor;
+                    switch (elementType) {
+                      case 'container':
+                        typeIcon = Icons.crop_square;
+                        typeColor = Colors.blue;
+                        break;
+                      case 'text':
+                        typeIcon = Icons.text_fields;
+                        typeColor = Colors.green;
+                        break;
+                      default:
+                        typeIcon = Icons.widgets;
+                        typeColor = Colors.grey;
                     }
                     
                     return Container(
                       margin: const EdgeInsets.only(bottom: 12),
-                      padding: const EdgeInsets.all(12),
+                      padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
                         color: const Color(0xFF1E1E1E),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.amber.withOpacity(0.3)),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: typeColor.withOpacity(0.3)),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            elementName,
-                            style: const TextStyle(
-                              color: Colors.amber,
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                            ),
+                          // Element header
+                          Row(
+                            children: [
+                              Icon(typeIcon, color: typeColor, size: 18),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  elementName,
+                                  style: TextStyle(
+                                    color: typeColor,
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: typeColor.withOpacity(0.2),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Text(
+                                  elementType.toUpperCase(),
+                                  style: TextStyle(
+                                    color: typeColor,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          
+                          // Properties grid
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _buildPropertyCard('Position', positionText, Icons.my_location, Colors.red),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: _buildPropertyCard('Rotation', '${rotation.toStringAsFixed(1)}°', Icons.rotate_right, Colors.orange),
+                              ),
+                            ],
                           ),
                           const SizedBox(height: 8),
-                          Text(
-                            positionText,
-                            style: const TextStyle(color: Colors.white70, fontSize: 12),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _buildPropertyCard('Scale', '${scale.toStringAsFixed(2)}x', Icons.zoom_in, Colors.purple),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: _buildPropertyCard('Opacity', '${(opacity * 100).toStringAsFixed(0)}%', Icons.opacity, Colors.teal),
+                              ),
+                            ],
                           ),
+                          
+                          // Element ID (for debugging)
+                          const SizedBox(height: 8),
                           Text(
-                            'Rotation: ${rotation.toStringAsFixed(1)}°',
-                            style: const TextStyle(color: Colors.white70, fontSize: 12),
-                          ),
-                          Text(
-                            'Scale: ${scale.toStringAsFixed(2)}',
-                            style: const TextStyle(color: Colors.white70, fontSize: 12),
-                          ),
-                          Text(
-                            'Opacity: ${opacity.toStringAsFixed(2)}',
-                            style: const TextStyle(color: Colors.white70, fontSize: 12),
+                            'ID: $elementId',
+                            style: const TextStyle(color: Colors.white38, fontSize: 10, fontFamily: 'monospace'),
                           ),
                         ],
                       ),
@@ -4153,16 +4274,140 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
             ),
           ),
           actions: [
+            TextButton.icon(
+              onPressed: () {
+                // Delete keyframe
+                _deleteKeyframe(frame);
+                Navigator.of(context).pop();
+              },
+              icon: const Icon(Icons.delete, color: Colors.red, size: 16),
+              label: const Text('Delete Keyframe', style: TextStyle(color: Colors.red)),
+            ),
+            TextButton.icon(
+              onPressed: () {
+                // Apply this keyframe's data to current frame
+                _applyKeyframeData(frame);
+                Navigator.of(context).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Applied keyframe $frame data to current elements'),
+                    backgroundColor: Colors.green,
+                  ),
+                );
+              },
+              icon: const Icon(Icons.play_arrow, color: Colors.green, size: 16),
+              label: const Text('Apply Now', style: TextStyle(color: Colors.green)),
+            ),
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text(
-                'Close',
-                style: TextStyle(color: Colors.amber),
-              ),
+              child: const Text('Close', style: TextStyle(color: Colors.amber)),
             ),
           ],
         );
       },
+    );
+  }
+  
+  // Helper method to build property cards
+  Widget _buildPropertyCard(String label, String value, IconData icon, Color color) {
+    return Container(
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: color.withOpacity(0.3)),
+      ),
+      child: Column(
+        children: [
+          Icon(icon, color: color, size: 14),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            value,
+            style: const TextStyle(color: Colors.white, fontSize: 11),
+          ),
+        ],
+      ),
+    );
+  }
+  
+  // Show dialog for empty keyframes
+  void _showEmptyKeyframeDialog(int frame) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: const Color(0xFF252525),
+          title: Row(
+            children: [
+              Icon(Icons.info_outline, color: Colors.orange, size: 20),
+              const SizedBox(width: 8),
+              Text(
+                'Empty Keyframe - Frame $frame',
+                style: const TextStyle(color: Colors.white, fontSize: 18),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'This keyframe has no animation data.',
+                style: const TextStyle(color: Colors.white70, fontSize: 16),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'To add animation data to this keyframe:',
+                style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                '1. Select elements on the canvas\n2. Enable recording (red button)\n3. Move or modify the elements\n4. The keyframe will be automatically updated',
+                style: const TextStyle(color: Colors.white70, fontSize: 12),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK', style: TextStyle(color: Colors.amber)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+  
+  // Delete a keyframe
+  void _deleteKeyframe(int frame) {
+    if (_selectedAnimationIndex == null || _selectedAnimationIndex! >= _animations.length) {
+      return;
+    }
+    
+    final animation = _animations[_selectedAnimationIndex!];
+    final keyframes = List<int>.from(animation['keyframes'] ?? []);
+    final frameData = animation['frame_data'] as Map<String, dynamic>?;
+    
+    // Remove keyframe from list
+    keyframes.remove(frame);
+    animation['keyframes'] = keyframes;
+    
+    // Remove frame data
+    frameData?.remove('frame_$frame');
+    
+    setState(() {
+      // Trigger UI update
+    });
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Deleted keyframe at frame $frame'),
+        backgroundColor: Colors.red,
+      ),
     );
   }
 
@@ -4265,16 +4510,18 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
       
       // Store the current state of all selected elements at this frame
       final frameData = <String, dynamic>{};
-      for (int i = 0; i < selectedElements.length; i++) {
-        final element = selectedElements[i];
-        frameData['element_$i'] = {
+      for (final element in selectedElements) {
+        final elementId = element['id'] ?? 'unknown_${DateTime.now().millisecondsSinceEpoch}';
+        frameData[elementId] = {
+          'id': elementId,
+          'type': element['type'],
           'position': element['position'] ?? Offset.zero,
           'rotation': element['rotation'] ?? 0.0,
           'scale': element['scale'] ?? 1.0,
           'opacity': element['opacity'] ?? 1.0,
           'name': element['name'], // Also store name for reference
         };
-        print('Recorded data for ${element['name']}: pos=${element['position']}, rot=${element['rotation']}, scale=${element['scale']}, opacity=${element['opacity']}');
+        print('Recorded data for ${element['name']} (ID: $elementId): pos=${element['position']}, rot=${element['rotation']}, scale=${element['scale']}, opacity=${element['opacity']}');
       }
       
       // Store frame data in animation
@@ -4327,16 +4574,18 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
       
       // Store the current state of all selected elements at this frame
       final frameData = <String, dynamic>{};
-      for (int i = 0; i < selectedElements.length; i++) {
-        final element = selectedElements[i];
-        frameData['element_$i'] = {
+      for (final element in selectedElements) {
+        final elementId = element['id'] ?? 'unknown_${DateTime.now().millisecondsSinceEpoch}';
+        frameData[elementId] = {
+          'id': elementId,
+          'type': element['type'],
           'position': element['position'] ?? Offset.zero,
           'rotation': element['rotation'] ?? 0.0,
           'scale': element['scale'] ?? 1.0,
           'opacity': element['opacity'] ?? 1.0,
           'name': element['name'], // Also store name for reference
         };
-        print('Recorded data for ${element['name']}: pos=${element['position']}, rot=${element['rotation']}, scale=${element['scale']}, opacity=${element['opacity']}');
+        print('Recorded data for ${element['name']} (ID: $elementId): pos=${element['position']}, rot=${element['rotation']}, scale=${element['scale']}, opacity=${element['opacity']}');
       }
       
       // Store frame data in animation
@@ -6456,6 +6705,8 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
             setState(() {
               // Create a copy of the data with position
               final componentData = Map<String, dynamic>.from(data);
+              // Add unique ID
+              componentData['id'] = _generateElementId(componentData['type'] ?? 'element');
               // Position at left top of the page by default
               componentData['position'] = const Offset(10, 10);
               componentData['rotation'] = 0.0; // Initialize rotation
@@ -6539,6 +6790,7 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                             if (width > 10 && height > 10) {
                               // Create a new container component
                               final containerData = {
+                                'id': _generateElementId('Container'),
                                 'type': 'Container',
                                 'name': 'Container',
                                 'position': Offset(left, top),
@@ -7991,13 +8243,16 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                                       if (selectedElements.isNotEmpty) {
                                         print('Found ${selectedElements.length} selected elements to record');
                                         final frameData = <String, dynamic>{};
-                                        for (int j = 0; j < selectedElements.length; j++) {
-                                          final element = selectedElements[j];
-                                          frameData['element_$j'] = {
+                                        for (final element in selectedElements) {
+                                          final elementId = element['id'] ?? 'unknown_${DateTime.now().millisecondsSinceEpoch}';
+                                          frameData[elementId] = {
+                                            'id': elementId,
+                                            'type': element['type'],
                                             'position': element['position'] ?? Offset.zero,
                                             'rotation': element['rotation'] ?? 0.0,
                                             'scale': element['scale'] ?? 1.0,
                                             'opacity': element['opacity'] ?? 1.0,
+                                            'name': element['name'],
                                           };
                                         }
                                         
