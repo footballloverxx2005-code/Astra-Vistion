@@ -3892,11 +3892,19 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
       if (elementData != null) {
         final component = _screenComponents[i];
         
-        // Update element properties
-        component['position'] = elementData['position'];
-        component['rotation'] = elementData['rotation'];
-        component['scale'] = elementData['scale'];
-        component['opacity'] = elementData['opacity'];
+        // Update element properties (only if not null)
+        if (elementData['position'] != null) {
+          component['position'] = elementData['position'];
+        }
+        if (elementData['rotation'] != null) {
+          component['rotation'] = elementData['rotation'];
+        }
+        if (elementData['scale'] != null) {
+          component['scale'] = elementData['scale'];
+        }
+        if (elementData['opacity'] != null) {
+          component['opacity'] = elementData['opacity'];
+        }
         
         print('Applied data to ${component['name']}: ${elementData}');
       }
@@ -3992,19 +4000,25 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
         }
         
         // Interpolate rotation
-        final prevRot = prevElementData['rotation'] ?? 0.0;
-        final nextRot = nextElementData['rotation'] ?? 0.0;
-        component['rotation'] = prevRot + (nextRot - prevRot) * t;
+        final prevRot = prevElementData['rotation'];
+        final nextRot = nextElementData['rotation'];
+        if (prevRot != null && nextRot != null) {
+          component['rotation'] = prevRot + (nextRot - prevRot) * t;
+        }
         
         // Interpolate scale
-        final prevScale = prevElementData['scale'] ?? 1.0;
-        final nextScale = nextElementData['scale'] ?? 1.0;
-        component['scale'] = prevScale + (nextScale - prevScale) * t;
+        final prevScale = prevElementData['scale'];
+        final nextScale = nextElementData['scale'];
+        if (prevScale != null && nextScale != null) {
+          component['scale'] = prevScale + (nextScale - prevScale) * t;
+        }
         
         // Interpolate opacity
-        final prevOpacity = prevElementData['opacity'] ?? 1.0;
-        final nextOpacity = nextElementData['opacity'] ?? 1.0;
-        component['opacity'] = prevOpacity + (nextOpacity - prevOpacity) * t;
+        final prevOpacity = prevElementData['opacity'];
+        final nextOpacity = nextElementData['opacity'];
+        if (prevOpacity != null && nextOpacity != null) {
+          component['opacity'] = prevOpacity + (nextOpacity - prevOpacity) * t;
+        }
       }
     }
   }
@@ -4254,10 +4268,10 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
       for (int i = 0; i < selectedElements.length; i++) {
         final element = selectedElements[i];
         frameData['element_$i'] = {
-          'position': element['position'],
-          'rotation': element['rotation'],
-          'scale': element['scale'],
-          'opacity': element['opacity'],
+          'position': element['position'] ?? Offset.zero,
+          'rotation': element['rotation'] ?? 0.0,
+          'scale': element['scale'] ?? 1.0,
+          'opacity': element['opacity'] ?? 1.0,
           'name': element['name'], // Also store name for reference
         };
         print('Recorded data for ${element['name']}: pos=${element['position']}, rot=${element['rotation']}, scale=${element['scale']}, opacity=${element['opacity']}');
@@ -4316,10 +4330,10 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
       for (int i = 0; i < selectedElements.length; i++) {
         final element = selectedElements[i];
         frameData['element_$i'] = {
-          'position': element['position'],
-          'rotation': element['rotation'],
-          'scale': element['scale'],
-          'opacity': element['opacity'],
+          'position': element['position'] ?? Offset.zero,
+          'rotation': element['rotation'] ?? 0.0,
+          'scale': element['scale'] ?? 1.0,
+          'opacity': element['opacity'] ?? 1.0,
           'name': element['name'], // Also store name for reference
         };
         print('Recorded data for ${element['name']}: pos=${element['position']}, rot=${element['rotation']}, scale=${element['scale']}, opacity=${element['opacity']}');
@@ -7980,10 +7994,10 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                                         for (int j = 0; j < selectedElements.length; j++) {
                                           final element = selectedElements[j];
                                           frameData['element_$j'] = {
-                                            'position': element['position'],
-                                            'rotation': element['rotation'],
-                                            'scale': element['scale'],
-                                            'opacity': element['opacity'],
+                                            'position': element['position'] ?? Offset.zero,
+                                            'rotation': element['rotation'] ?? 0.0,
+                                            'scale': element['scale'] ?? 1.0,
+                                            'opacity': element['opacity'] ?? 1.0,
                                           };
                                         }
                                         
