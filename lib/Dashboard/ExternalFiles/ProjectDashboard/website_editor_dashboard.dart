@@ -230,7 +230,359 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
   
   // Animation playback state
   bool _isPlaying = false;
-
+  Timer? _animationTimer;
+  int _currentPlaybackFrame = 0;
+  double _animationSpeed = 1.0; // Speed multiplier (1.0 = normal speed)
+  
+  // Helper method to generate unique IDs for elements
+  String _generateElementId(String type) {
+    return '${type}_${DateTime.now().millisecondsSinceEpoch}_${_screenComponents.length}';
+  }
+  
+  // Show context menu for animations
+  void _showAnimationContextMenu(BuildContext context, Offset position, int animationIndex) {
+    showMenu(
+      context: context,
+      position: RelativeRect.fromLTRB(position.dx, position.dy, position.dx + 1, position.dy + 1),
+      items: [
+        PopupMenuItem(
+          value: 'rename',
+          child: Row(
+            children: [
+              Icon(Icons.edit, color: Colors.blue, size: 18),
+              SizedBox(width: 12),
+              Expanded(child: Text('Rename', style: TextStyle(color: Colors.white))),
+              Text('F2', style: TextStyle(color: Colors.white38, fontSize: 12)),
+            ],
+          ),
+        ),
+        PopupMenuDivider(height: 1),
+        PopupMenuItem(
+          value: 'delete',
+          child: Row(
+            children: [
+              Icon(Icons.delete, color: Colors.red, size: 18),
+              SizedBox(width: 12),
+              Expanded(child: Text('Delete', style: TextStyle(color: Colors.red))),
+              Text('Del', style: TextStyle(color: Colors.white38, fontSize: 12)),
+            ],
+          ),
+        ),
+      ],
+      color: Color(0xFF2D2D2D),
+      elevation: 8,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+    ).then((value) {
+      if (value == 'rename') {
+        _renameAnimation(animationIndex);
+      } else if (value == 'delete') {
+        _deleteAnimationWithConfirmation(animationIndex);
+      }
+    });
+  }
+  
+  // Show context menu for elements
+  void _showElementContextMenu(BuildContext context, Offset position, int elementIndex) {
+    showMenu(
+      context: context,
+      position: RelativeRect.fromLTRB(position.dx, position.dy, position.dx + 1, position.dy + 1),
+      items: [
+        PopupMenuItem(
+          value: 'rename',
+          child: Row(
+            children: [
+              Icon(Icons.edit, color: Colors.blue, size: 18),
+              SizedBox(width: 12),
+              Expanded(child: Text('Rename', style: TextStyle(color: Colors.white))),
+              Text('F2', style: TextStyle(color: Colors.white38, fontSize: 12)),
+            ],
+          ),
+        ),
+        PopupMenuDivider(height: 1),
+        PopupMenuItem(
+          value: 'delete',
+          child: Row(
+            children: [
+              Icon(Icons.delete, color: Colors.red, size: 18),
+              SizedBox(width: 12),
+              Expanded(child: Text('Delete', style: TextStyle(color: Colors.red))),
+              Text('Del', style: TextStyle(color: Colors.white38, fontSize: 12)),
+            ],
+          ),
+        ),
+      ],
+      color: Color(0xFF2D2D2D),
+      elevation: 8,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+    ).then((value) {
+      if (value == 'rename') {
+        _renameElement(elementIndex);
+      } else if (value == 'delete') {
+        _deleteElementWithConfirmation(elementIndex);
+      }
+        });
+  }
+  
+  // Rename animation dialog
+  void _renameAnimation(int animationIndex) {
+    if (animationIndex < 0 || animationIndex >= _animations.length) return;
+    
+    final currentName = _animations[animationIndex]['name'] ?? 'Animation';
+    final controller = TextEditingController(text: currentName);
+    
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Color(0xFF252525),
+        title: Row(
+          children: [
+            Icon(Icons.edit, color: Colors.blue, size: 20),
+            SizedBox(width: 8),
+            Text('Rename Animation', style: TextStyle(color: Colors.white)),
+          ],
+        ),
+        content: TextField(
+          controller: controller,
+          style: TextStyle(color: Colors.white),
+          decoration: InputDecoration(
+            labelText: 'Animation Name',
+            labelStyle: TextStyle(color: Colors.white70),
+            enabledBorder: OutlineInputBorder(
+              borderSide: BorderSide(color: Colors.white54),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderSide: BorderSide(color: Colors.blue),
+            ),
+          ),
+          autofocus: true,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Cancel', style: TextStyle(color: Colors.white70)),
+          ),
+          TextButton(
+            onPressed: () {
+              if (controller.text.trim().isNotEmpty) {
+                setState(() {
+                  _animations[animationIndex]['name'] = controller.text.trim();
+                });
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Animation renamed to "${controller.text.trim()}"'),
+                    backgroundColor: Colors.green,
+                  ),
+                );
+              }
+            },
+            child: Text('Rename', style: TextStyle(color: Colors.blue)),
+          ),
+        ],
+      ),
+    );
+  }
+  
+  // Delete animation with confirmation
+  void _deleteAnimationWithConfirmation(int animationIndex) {
+    if (animationIndex < 0 || animationIndex >= _animations.length) return;
+    
+    final animationName = _animations[animationIndex]['name'] ?? 'Animation';
+    
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Color(0xFF252525),
+        title: Row(
+          children: [
+            Icon(Icons.warning, color: Colors.red, size: 20),
+            SizedBox(width: 8),
+            Text('Delete Animation', style: TextStyle(color: Colors.white)),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Are you sure you want to delete the animation "$animationName"?',
+              style: TextStyle(color: Colors.white),
+            ),
+            SizedBox(height: 8),
+            Text(
+              'This action cannot be undone.',
+              style: TextStyle(color: Colors.red.withOpacity(0.8), fontSize: 12),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Cancel', style: TextStyle(color: Colors.white70)),
+          ),
+          TextButton(
+            onPressed: () {
+              setState(() {
+                _animations.removeAt(animationIndex);
+                // Reset selected animation if it was deleted
+                if (_selectedAnimationIndex == animationIndex) {
+                  _selectedAnimationIndex = null;
+                } else if (_selectedAnimationIndex != null && _selectedAnimationIndex! > animationIndex) {
+                  _selectedAnimationIndex = _selectedAnimationIndex! - 1;
+                }
+              });
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Animation "$animationName" deleted'),
+                  backgroundColor: Colors.red,
+                ),
+              );
+            },
+            child: Text('Delete', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+  }
+  
+  // Rename element dialog
+  void _renameElement(int elementIndex) {
+    if (elementIndex < 0 || elementIndex >= _screenComponents.length) return;
+    
+    final currentName = _screenComponents[elementIndex]['name'] ?? 'Element';
+    final controller = TextEditingController(text: currentName);
+    
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Color(0xFF252525),
+        title: Row(
+          children: [
+            Icon(Icons.edit, color: Colors.blue, size: 20),
+            SizedBox(width: 8),
+            Text('Rename Element', style: TextStyle(color: Colors.white)),
+          ],
+        ),
+        content: TextField(
+          controller: controller,
+          style: TextStyle(color: Colors.white),
+          decoration: InputDecoration(
+            labelText: 'Element Name',
+            labelStyle: TextStyle(color: Colors.white70),
+            enabledBorder: OutlineInputBorder(
+              borderSide: BorderSide(color: Colors.white54),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderSide: BorderSide(color: Colors.blue),
+            ),
+          ),
+          autofocus: true,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Cancel', style: TextStyle(color: Colors.white70)),
+          ),
+          TextButton(
+            onPressed: () {
+              if (controller.text.trim().isNotEmpty) {
+                setState(() {
+                  _screenComponents[elementIndex]['name'] = controller.text.trim();
+                });
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Element renamed to "${controller.text.trim()}"'),
+                    backgroundColor: Colors.green,
+                  ),
+                );
+              }
+            },
+            child: Text('Rename', style: TextStyle(color: Colors.blue)),
+          ),
+        ],
+      ),
+    );
+  }
+  
+  // Delete element with confirmation
+  void _deleteElementWithConfirmation(int elementIndex) {
+    if (elementIndex < 0 || elementIndex >= _screenComponents.length) return;
+    
+    final elementName = _screenComponents[elementIndex]['name'] ?? 'Element';
+    final elementId = _screenComponents[elementIndex]['id'];
+    
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Color(0xFF252525),
+        title: Row(
+          children: [
+            Icon(Icons.warning, color: Colors.red, size: 20),
+            SizedBox(width: 8),
+            Text('Delete Element', style: TextStyle(color: Colors.white)),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Are you sure you want to delete the element "$elementName"?',
+              style: TextStyle(color: Colors.white),
+            ),
+            SizedBox(height: 8),
+            Text(
+              'This will also remove it from all animations.',
+              style: TextStyle(color: Colors.orange.withOpacity(0.8), fontSize: 12),
+            ),
+            SizedBox(height: 4),
+            Text(
+              'This action cannot be undone.',
+              style: TextStyle(color: Colors.red.withOpacity(0.8), fontSize: 12),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Cancel', style: TextStyle(color: Colors.white70)),
+          ),
+          TextButton(
+            onPressed: () {
+              setState(() {
+                // Remove element from screen components
+                _screenComponents.removeAt(elementIndex);
+                
+                // Remove element from all animations
+                for (final animation in _animations) {
+                  final frameData = animation['frame_data'] as Map<String, dynamic>?;
+                  if (frameData != null) {
+                    for (final frameKey in frameData.keys.toList()) {
+                      final frame = frameData[frameKey] as Map<String, dynamic>?;
+                      if (frame != null) {
+                        frame.remove(elementId);
+                      }
+                    }
+                  }
+                }
+              });
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Element "$elementName" deleted'),
+                  backgroundColor: Colors.red,
+                ),
+              );
+            },
+            child: Text('Delete', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+  }
+  
   @override
   void initState() {
     super.initState();
@@ -243,6 +595,7 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
     // Add sample elements for testing keyframe functionality
     _screenComponents.addAll([
       {
+        'id': _generateElementId('container'),
         'type': 'container',
         'name': 'Test Container',
         'position': Offset(100, 100),
@@ -255,6 +608,7 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
         'opacity': 1.0,
       },
       {
+        'id': _generateElementId('text'),
         'type': 'text',
         'name': 'Test Text',
         'position': Offset(200, 150),
@@ -271,6 +625,7 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
 
   @override
   void dispose() {
+    _animationTimer?.cancel();
     _navigationScrollController.dispose();
     _componentLibraryController.dispose();
     _rightSidebarController.dispose();
@@ -521,35 +876,46 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                                               itemBuilder: (context, index) {
                                                 final component =
                                                     _screenComponents[index];
-                                                return ListTile(
-                                                  title: Text(
-                                                      component['name'] ??
-                                                          'Element',
-                                                      style: TextStyle(
-                                                          color: component['selected'] == true 
-                                                              ? Colors.white 
-                                                              : Colors.white70,
-                                                          fontWeight: component['selected'] == true 
-                                                              ? FontWeight.w600 
-                                                              : FontWeight.normal)),
-                                                  leading: Icon(Icons.widgets,
-                                                      color: component['selected'] == true 
-                                                          ? Colors.blue 
-                                                          : Colors.white54),
-                                                  selected: component['selected'] == true,
-                                                  selectedTileColor: Colors.blue.withOpacity(0.2),
-                                                  onTap: () {
-                                                    setState(() {
-                                                      for (var c
-                                                          in _screenComponents) {
-                                                        c['selected'] = false;
-                                                      }
-                                                      component['selected'] =
-                                                          true;
-                                                      _isScreenSelected = true;
-                                                      _selectedRightTab = 'Animation';
-                                                    });
+                                                return GestureDetector(
+                                                  onSecondaryTapDown: (details) {
+                                                    _showElementContextMenu(
+                                                      context,
+                                                      details.globalPosition,
+                                                      index,
+                                                    );
                                                   },
+                                                  child: ListTile(
+                                                    title: Text(
+                                                        component['name'] ??
+                                                            'Element',
+                                                        style: TextStyle(
+                                                            color: component['selected'] == true 
+                                                                ? Colors.white 
+                                                                : Colors.white70,
+                                                            fontWeight: component['selected'] == true 
+                                                                ? FontWeight.w600 
+                                                                : FontWeight.normal)),
+                                                                                                         leading: Icon(Icons.widgets,
+                                                         color: component['selected'] == true 
+                                                             ? Colors.blue 
+                                                             : Colors.white54),
+                                                     trailing: Icon(Icons.more_vert, 
+                                                         color: Colors.white24, size: 16),
+                                                     selected: component['selected'] == true,
+                                                    selectedTileColor: Colors.blue.withOpacity(0.2),
+                                                    onTap: () {
+                                                      setState(() {
+                                                        for (var c
+                                                            in _screenComponents) {
+                                                          c['selected'] = false;
+                                                        }
+                                                        component['selected'] =
+                                                            true;
+                                                        _isScreenSelected = true;
+                                                        _selectedRightTab = 'Animation';
+                                                      });
+                                                    },
+                                                  ),
                                                 );
                                               },
                                             ),
@@ -684,22 +1050,33 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                                               itemCount: _animations.length,
                                               itemBuilder: (context, index) {
                                                 final anim = _animations[index];
-                                                return ListTile(
-                                                  title: Text(
-                                                      anim['name'] ??
-                                                          'Animation',
-                                                      style: TextStyle(
-                                                          color: Colors.white)),
-                                                  leading: Icon(Icons.movie,
-                                                      color: Colors.white54),
-                                                  selected: _selectedAnimationIndex == index,
-                                                  selectedTileColor: Colors.blue.withOpacity(0.2),
-                                                  onTap: () {
-                                                    setState(() {
-                                                      _selectedAnimationIndex =
-                                                          index;
-                                                    });
+                                                return GestureDetector(
+                                                  onSecondaryTapDown: (details) {
+                                                    _showAnimationContextMenu(
+                                                      context,
+                                                      details.globalPosition,
+                                                      index,
+                                                    );
                                                   },
+                                                  child: ListTile(
+                                                    title: Text(
+                                                        anim['name'] ??
+                                                            'Animation',
+                                                        style: TextStyle(
+                                                            color: Colors.white)),
+                                                    leading: Icon(Icons.movie,
+                                                        color: Colors.white54),
+                                                    trailing: Icon(Icons.more_vert, 
+                                                        color: Colors.white24, size: 16),
+                                                    selected: _selectedAnimationIndex == index,
+                                                    selectedTileColor: Colors.blue.withOpacity(0.2),
+                                                    onTap: () {
+                                                      setState(() {
+                                                        _selectedAnimationIndex =
+                                                            index;
+                                                      });
+                                                    },
+                                                  ),
                                                 );
                                               },
                                             ),
@@ -3811,41 +4188,57 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
       return;
     }
     
-    setState(() {
-      _isPlaying = true;
-    });
-    
     final animation = _animations[_selectedAnimationIndex!];
     final keyframes = List<int>.from(animation['keyframes'] ?? []);
     
     if (keyframes.isEmpty) {
-      setState(() {
-        _isPlaying = false;
-      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('No keyframes found in animation. Please add keyframes before playing.'),
+          duration: const Duration(seconds: 3),
+          backgroundColor: Colors.orange,
+        ),
+      );
       return;
     }
     
-    // Enhanced playback - cycle through keyframes and apply stored data
-    int currentKeyframeIndex = 0;
+    // Sort keyframes to ensure proper order
+    keyframes.sort();
     
-    Timer.periodic(Duration(milliseconds: 500), (timer) { // Slower for better visibility
-      if (!_isPlaying || currentKeyframeIndex >= keyframes.length) {
+    setState(() {
+      _isPlaying = true;
+      _currentPlaybackFrame = 0;
+    });
+    
+    // Start animation from frame 0 to the last keyframe
+    final maxFrame = keyframes.last;
+    
+    // Each frame represents 1ms, but we use 16ms (60fps) for smooth animation
+    // Speed can be adjusted by the speed multiplier
+    final frameInterval = (16 / _animationSpeed).round().clamp(1, 1000);
+    _animationTimer = Timer.periodic(Duration(milliseconds: frameInterval), (timer) {
+      if (!_isPlaying || _currentPlaybackFrame > maxFrame) {
         timer.cancel();
+        _animationTimer = null;
         setState(() {
           _isPlaying = false;
+          _currentPlaybackFrame = 0;
         });
         return;
       }
       
-      final currentFrame = keyframes[currentKeyframeIndex];
+              setState(() {
+          _selectedFrame = _currentPlaybackFrame;
+          // Apply interpolated data for current frame
+          try {
+            _applyInterpolatedFrameData(_currentPlaybackFrame, keyframes);
+          } catch (e) {
+            print('Error applying interpolated frame data: $e');
+            // Continue animation even if one frame fails
+          }
+        });
       
-      setState(() {
-        _selectedFrame = currentFrame;
-        // Apply saved keyframe data
-        _applyKeyframeData(currentFrame);
-      });
-      
-      currentKeyframeIndex++;
+      _currentPlaybackFrame++;
     });
   }
   
@@ -3863,7 +4256,7 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
       return;
     }
     
-    final currentFrameData = frameData['frame_$frame'];
+    final currentFrameData = frameData['frame_$frame'] as Map<String, dynamic>?;
     if (currentFrameData == null) {
       print('No data found for frame $frame');
       return;
@@ -3871,30 +4264,194 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
     
     print('Applying keyframe data for frame $frame');
     
-    // Apply data to elements
-    for (int i = 0; i < _screenComponents.length; i++) {
-      final elementData = currentFrameData['element_$i'];
-      if (elementData != null) {
-        final component = _screenComponents[i];
-        
-        // Update element properties
-        component['position'] = elementData['position'];
-        component['rotation'] = elementData['rotation'];
-        component['scale'] = elementData['scale'];
-        component['opacity'] = elementData['opacity'];
-        
-        print('Applied data to ${component['name']}: ${elementData}');
+    // Apply data to elements using IDs
+    currentFrameData.forEach((elementId, elementData) {
+      if (elementId is String && elementData is Map<String, dynamic>) {
+        // Find the component with matching ID
+        final componentIndex = _screenComponents.indexWhere((c) => c['id'] == elementId);
+        if (componentIndex != -1) {
+          final component = _screenComponents[componentIndex];
+          
+          // Update element properties (only if not null)
+          if (elementData['position'] != null) {
+            component['position'] = elementData['position'];
+          }
+          if (elementData['rotation'] != null) {
+            component['rotation'] = elementData['rotation'];
+          }
+          if (elementData['scale'] != null) {
+            component['scale'] = elementData['scale'];
+          }
+          if (elementData['opacity'] != null) {
+            component['opacity'] = elementData['opacity'];
+          }
+          
+          print('Applied data to ${component['name']} (ID: $elementId): ${elementData}');
+        } else {
+          print('Warning: Could not find component with ID: $elementId');
+        }
       }
-    }
-  }
-  
-  void _stopAnimation() {
-    setState(() {
-      _isPlaying = false;
     });
   }
   
-  // Show keyframe details dialog
+  // Apply interpolated frame data between keyframes
+  void _applyInterpolatedFrameData(int currentFrame, List<int> keyframes) {
+    if (_selectedAnimationIndex == null || _selectedAnimationIndex! >= _animations.length) {
+      return;
+    }
+    
+    final animation = _animations[_selectedAnimationIndex!];
+    final frameData = animation['frame_data'];
+    
+    if (frameData == null) {
+      return;
+    }
+    
+    // Find the two keyframes to interpolate between
+    int? prevKeyframe;
+    int? nextKeyframe;
+    
+    // Find previous and next keyframes
+    for (int i = 0; i < keyframes.length; i++) {
+      if (keyframes[i] <= currentFrame) {
+        prevKeyframe = keyframes[i];
+      }
+      if (keyframes[i] >= currentFrame && nextKeyframe == null) {
+        nextKeyframe = keyframes[i];
+        break;
+      }
+    }
+    
+    // Handle edge cases
+    if (prevKeyframe == null && nextKeyframe != null) {
+      // Before first keyframe - hold the first keyframe's values
+      _applyKeyframeData(nextKeyframe);
+      return;
+    } else if (prevKeyframe != null && nextKeyframe == null) {
+      // After last keyframe - hold the last keyframe's values
+      _applyKeyframeData(prevKeyframe);
+      return;
+    } else if (prevKeyframe == null && nextKeyframe == null) {
+      // No keyframes at all
+      return;
+    }
+    
+    // If we're exactly on a keyframe, apply its data directly
+    if (currentFrame == prevKeyframe || currentFrame == nextKeyframe) {
+      _applyKeyframeData(currentFrame);
+      return;
+    }
+    
+    // Get data for both keyframes
+    final prevFrameData = frameData['frame_$prevKeyframe'] as Map<String, dynamic>?;
+    final nextFrameData = frameData['frame_$nextKeyframe'] as Map<String, dynamic>?;
+    
+    if (prevFrameData == null || nextFrameData == null) {
+      return;
+    }
+    
+    // Calculate interpolation factor (0.0 to 1.0)
+    double t = 0.0;
+    if (nextKeyframe! != prevKeyframe!) {
+      t = (currentFrame - prevKeyframe!) / (nextKeyframe! - prevKeyframe!);
+    }
+    
+    // Apply interpolated data to elements using IDs
+    // Get all element IDs that exist in both frames
+    final commonIds = <String>[];
+    for (final id in prevFrameData.keys) {
+      if (id is String && nextFrameData.containsKey(id)) {
+        commonIds.add(id);
+      }
+    }
+    
+    for (final elementId in commonIds) {
+      final prevElementData = prevFrameData[elementId];
+      final nextElementData = nextFrameData[elementId];
+      
+      if (prevElementData is Map<String, dynamic> && nextElementData is Map<String, dynamic>) {
+        // Find the component with matching ID
+        final componentIndex = _screenComponents.indexWhere((c) => c['id'] == elementId);
+        if (componentIndex != -1) {
+          final component = _screenComponents[componentIndex];
+        
+        // Interpolate position
+        final prevPos = prevElementData['position'];
+        final nextPos = nextElementData['position'];
+        if (prevPos != null && nextPos != null) {
+          Offset interpolatedPos;
+          if (prevPos is Offset && nextPos is Offset) {
+            interpolatedPos = Offset.lerp(prevPos, nextPos, t)!;
+          } else if (prevPos is List && nextPos is List && 
+                     prevPos.length >= 2 && nextPos.length >= 2) {
+            final x = prevPos[0] + (nextPos[0] - prevPos[0]) * t;
+            final y = prevPos[1] + (nextPos[1] - prevPos[1]) * t;
+            interpolatedPos = Offset(x.toDouble(), y.toDouble());
+          } else {
+            interpolatedPos = prevPos is Offset ? prevPos : Offset.zero;
+          }
+          component['position'] = interpolatedPos;
+        }
+        
+        // Interpolate rotation
+        final prevRot = prevElementData['rotation'];
+        final nextRot = nextElementData['rotation'];
+        if (prevRot != null && nextRot != null) {
+          component['rotation'] = prevRot + (nextRot - prevRot) * t;
+        }
+        
+        // Interpolate scale
+        final prevScale = prevElementData['scale'];
+        final nextScale = nextElementData['scale'];
+        if (prevScale != null && nextScale != null) {
+          component['scale'] = prevScale + (nextScale - prevScale) * t;
+        }
+        
+        // Interpolate opacity
+        final prevOpacity = prevElementData['opacity'];
+        final nextOpacity = nextElementData['opacity'];
+        if (prevOpacity != null && nextOpacity != null) {
+          component['opacity'] = prevOpacity + (nextOpacity - prevOpacity) * t;
+        }
+        } else {
+          print('Warning: Could not find component with ID: $elementId for interpolation');
+        }
+      }
+    }
+  }
+
+  void _stopAnimation() {
+    _animationTimer?.cancel();
+    _animationTimer = null;
+    setState(() {
+      _isPlaying = false;
+      _currentPlaybackFrame = 0;
+      // Reset to first frame
+      _selectedFrame = 0;
+    });
+    
+    // Optionally reset elements to their initial positions
+    // You can uncomment this if you want elements to return to start positions
+    // _resetElementsToInitialState();
+  }
+  
+  // Optional: Reset elements to their initial state
+  void _resetElementsToInitialState() {
+    if (_selectedAnimationIndex == null || _selectedAnimationIndex! >= _animations.length) {
+      return;
+    }
+    
+    final animation = _animations[_selectedAnimationIndex!];
+    final keyframes = List<int>.from(animation['keyframes'] ?? []);
+    
+    if (keyframes.isNotEmpty) {
+      keyframes.sort();
+      // Apply the first keyframe's data
+      _applyKeyframeData(keyframes.first);
+    }
+  }
+  
+  // Show enhanced keyframe settings dialog
   void _showKeyframeDetails(int frame) {
     if (_selectedAnimationIndex == null || _selectedAnimationIndex! >= _animations.length) {
       return;
@@ -3904,6 +4461,8 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
     final frameData = animation['frame_data'] as Map<String, dynamic>?;
     
     if (frameData == null || !frameData.containsKey('frame_$frame')) {
+      // Show empty keyframe dialog
+      _showEmptyKeyframeDialog(frame);
       return;
     }
     
@@ -3914,65 +4473,173 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
       builder: (BuildContext context) {
         return AlertDialog(
           backgroundColor: const Color(0xFF252525),
-          title: Text(
-            'Keyframe Details - Frame $frame',
-            style: const TextStyle(color: Colors.white),
+          title: Row(
+            children: [
+              Icon(Icons.settings, color: Colors.amber, size: 20),
+              const SizedBox(width: 8),
+              Text(
+                'Keyframe Settings - Frame $frame',
+                style: const TextStyle(color: Colors.white, fontSize: 18),
+              ),
+            ],
           ),
           content: SizedBox(
-            width: 400,
-            height: 300,
+            width: 500,
+            height: 400,
             child: SingleChildScrollView(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Elements: ${data.length}',
-                    style: const TextStyle(color: Colors.white70, fontSize: 16),
+                  // Animation info
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1A1A1A),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.blue.withOpacity(0.3)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(Icons.movie, color: Colors.blue, size: 16),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Animation: ${animation['name'] ?? 'Unnamed'}',
+                              style: const TextStyle(color: Colors.blue, fontSize: 14, fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Frame: $frame • Elements: ${data.length}',
+                          style: const TextStyle(color: Colors.white70, fontSize: 12),
+                        ),
+                      ],
+                    ),
                   ),
                   const SizedBox(height: 16),
+                  
+                  // Container elements
+                  Text(
+                    'Animated Elements:',
+                    style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 12),
+                  
                   ...data.entries.map((entry) {
+                    final elementId = entry.key;
                     final elementData = entry.value as Map<String, dynamic>;
                     final elementName = elementData['name'] ?? 'Unknown';
-                    final position = elementData['position'] ?? [0.0, 0.0];
+                    final elementType = elementData['type'] ?? 'unknown';
+                    final position = elementData['position'];
                     final rotation = elementData['rotation'] ?? 0.0;
                     final scale = elementData['scale'] ?? 1.0;
                     final opacity = elementData['opacity'] ?? 1.0;
                     
+                    // Handle position as either Offset or array
+                    String positionText;
+                    if (position is Offset) {
+                      positionText = '(${position.dx.toStringAsFixed(1)}, ${position.dy.toStringAsFixed(1)})';
+                    } else if (position is List && position.length >= 2) {
+                      positionText = '(${position[0].toStringAsFixed(1)}, ${position[1].toStringAsFixed(1)})';
+                    } else {
+                      positionText = '(0.0, 0.0)';
+                    }
+                    
+                    // Get type icon
+                    IconData typeIcon;
+                    Color typeColor;
+                    switch (elementType) {
+                      case 'container':
+                        typeIcon = Icons.crop_square;
+                        typeColor = Colors.blue;
+                        break;
+                      case 'text':
+                        typeIcon = Icons.text_fields;
+                        typeColor = Colors.green;
+                        break;
+                      default:
+                        typeIcon = Icons.widgets;
+                        typeColor = Colors.grey;
+                    }
+                    
                     return Container(
                       margin: const EdgeInsets.only(bottom: 12),
-                      padding: const EdgeInsets.all(12),
+                      padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
                         color: const Color(0xFF1E1E1E),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.amber.withOpacity(0.3)),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: typeColor.withOpacity(0.3)),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            elementName,
-                            style: const TextStyle(
-                              color: Colors.amber,
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                            ),
+                          // Element header
+                          Row(
+                            children: [
+                              Icon(typeIcon, color: typeColor, size: 18),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  elementName,
+                                  style: TextStyle(
+                                    color: typeColor,
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: typeColor.withOpacity(0.2),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Text(
+                                  elementType.toUpperCase(),
+                                  style: TextStyle(
+                                    color: typeColor,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          
+                          // Properties grid
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _buildPropertyCard('Position', positionText, Icons.my_location, Colors.red),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: _buildPropertyCard('Rotation', '${rotation.toStringAsFixed(1)}°', Icons.rotate_right, Colors.orange),
+                              ),
+                            ],
                           ),
                           const SizedBox(height: 8),
-                          Text(
-                            'Position: (${position[0].toStringAsFixed(1)}, ${position[1].toStringAsFixed(1)})',
-                            style: const TextStyle(color: Colors.white70, fontSize: 12),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _buildPropertyCard('Scale', '${scale.toStringAsFixed(2)}x', Icons.zoom_in, Colors.purple),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: _buildPropertyCard('Opacity', '${(opacity * 100).toStringAsFixed(0)}%', Icons.opacity, Colors.teal),
+                              ),
+                            ],
                           ),
+                          
+                          // Element ID (for debugging)
+                          const SizedBox(height: 8),
                           Text(
-                            'Rotation: ${rotation.toStringAsFixed(1)}°',
-                            style: const TextStyle(color: Colors.white70, fontSize: 12),
-                          ),
-                          Text(
-                            'Scale: ${scale.toStringAsFixed(2)}',
-                            style: const TextStyle(color: Colors.white70, fontSize: 12),
-                          ),
-                          Text(
-                            'Opacity: ${opacity.toStringAsFixed(2)}',
-                            style: const TextStyle(color: Colors.white70, fontSize: 12),
+                            'ID: $elementId',
+                            style: const TextStyle(color: Colors.white38, fontSize: 10, fontFamily: 'monospace'),
                           ),
                         ],
                       ),
@@ -3983,16 +4650,140 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
             ),
           ),
           actions: [
+            TextButton.icon(
+              onPressed: () {
+                // Delete keyframe
+                _deleteKeyframe(frame);
+                Navigator.of(context).pop();
+              },
+              icon: const Icon(Icons.delete, color: Colors.red, size: 16),
+              label: const Text('Delete Keyframe', style: TextStyle(color: Colors.red)),
+            ),
+            TextButton.icon(
+              onPressed: () {
+                // Apply this keyframe's data to current frame
+                _applyKeyframeData(frame);
+                Navigator.of(context).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Applied keyframe $frame data to current elements'),
+                    backgroundColor: Colors.green,
+                  ),
+                );
+              },
+              icon: const Icon(Icons.play_arrow, color: Colors.green, size: 16),
+              label: const Text('Apply Now', style: TextStyle(color: Colors.green)),
+            ),
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text(
-                'Close',
-                style: TextStyle(color: Colors.amber),
-              ),
+              child: const Text('Close', style: TextStyle(color: Colors.amber)),
             ),
           ],
         );
       },
+    );
+  }
+  
+  // Helper method to build property cards
+  Widget _buildPropertyCard(String label, String value, IconData icon, Color color) {
+    return Container(
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: color.withOpacity(0.3)),
+      ),
+      child: Column(
+        children: [
+          Icon(icon, color: color, size: 14),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            value,
+            style: const TextStyle(color: Colors.white, fontSize: 11),
+          ),
+        ],
+      ),
+    );
+  }
+  
+  // Show dialog for empty keyframes
+  void _showEmptyKeyframeDialog(int frame) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: const Color(0xFF252525),
+          title: Row(
+            children: [
+              Icon(Icons.info_outline, color: Colors.orange, size: 20),
+              const SizedBox(width: 8),
+              Text(
+                'Empty Keyframe - Frame $frame',
+                style: const TextStyle(color: Colors.white, fontSize: 18),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'This keyframe has no animation data.',
+                style: const TextStyle(color: Colors.white70, fontSize: 16),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'To add animation data to this keyframe:',
+                style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                '1. Select elements on the canvas\n2. Enable recording (red button)\n3. Move or modify the elements\n4. The keyframe will be automatically updated',
+                style: const TextStyle(color: Colors.white70, fontSize: 12),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK', style: TextStyle(color: Colors.amber)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+  
+  // Delete a keyframe
+  void _deleteKeyframe(int frame) {
+    if (_selectedAnimationIndex == null || _selectedAnimationIndex! >= _animations.length) {
+      return;
+    }
+    
+    final animation = _animations[_selectedAnimationIndex!];
+    final keyframes = List<int>.from(animation['keyframes'] ?? []);
+    final frameData = animation['frame_data'] as Map<String, dynamic>?;
+    
+    // Remove keyframe from list
+    keyframes.remove(frame);
+    animation['keyframes'] = keyframes;
+    
+    // Remove frame data
+    frameData?.remove('frame_$frame');
+    
+    setState(() {
+      // Trigger UI update
+    });
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Deleted keyframe at frame $frame'),
+        backgroundColor: Colors.red,
+      ),
     );
   }
 
@@ -4039,9 +4830,18 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
     data.forEach((key, value) {
       if (value is Map<String, dynamic>) {
         final elementName = value['name'] ?? 'Unknown';
-        final position = value['position'] ?? [0.0, 0.0];
+        final position = value['position'];
         tooltip += '\n$elementName:\n';
-        tooltip += '  Position: (${position[0].toStringAsFixed(1)}, ${position[1].toStringAsFixed(1)})\n';
+        
+        // Handle position as either Offset or array
+        if (position is Offset) {
+          tooltip += '  Position: (${position.dx.toStringAsFixed(1)}, ${position.dy.toStringAsFixed(1)})\n';
+        } else if (position is List && position.length >= 2) {
+          tooltip += '  Position: (${position[0].toStringAsFixed(1)}, ${position[1].toStringAsFixed(1)})\n';
+        } else {
+          tooltip += '  Position: (0.0, 0.0)\n';
+        }
+        
         tooltip += '  Rotation: ${(value['rotation'] ?? 0.0).toStringAsFixed(1)}°\n';
         tooltip += '  Scale: ${(value['scale'] ?? 1.0).toStringAsFixed(2)}\n';
         tooltip += '  Opacity: ${(value['opacity'] ?? 1.0).toStringAsFixed(2)}';
@@ -4086,16 +4886,18 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
       
       // Store the current state of all selected elements at this frame
       final frameData = <String, dynamic>{};
-      for (int i = 0; i < selectedElements.length; i++) {
-        final element = selectedElements[i];
-        frameData['element_$i'] = {
-          'position': element['position'],
-          'rotation': element['rotation'],
-          'scale': element['scale'],
-          'opacity': element['opacity'],
+      for (final element in selectedElements) {
+        final elementId = element['id'] ?? 'unknown_${DateTime.now().millisecondsSinceEpoch}';
+        frameData[elementId] = {
+          'id': elementId,
+          'type': element['type'],
+          'position': element['position'] ?? Offset.zero,
+          'rotation': element['rotation'] ?? 0.0,
+          'scale': element['scale'] ?? 1.0,
+          'opacity': element['opacity'] ?? 1.0,
           'name': element['name'], // Also store name for reference
         };
-        print('Recorded data for ${element['name']}: pos=${element['position']}, rot=${element['rotation']}, scale=${element['scale']}, opacity=${element['opacity']}');
+        print('Recorded data for ${element['name']} (ID: $elementId): pos=${element['position']}, rot=${element['rotation']}, scale=${element['scale']}, opacity=${element['opacity']}');
       }
       
       // Store frame data in animation
@@ -4148,16 +4950,18 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
       
       // Store the current state of all selected elements at this frame
       final frameData = <String, dynamic>{};
-      for (int i = 0; i < selectedElements.length; i++) {
-        final element = selectedElements[i];
-        frameData['element_$i'] = {
-          'position': element['position'],
-          'rotation': element['rotation'],
-          'scale': element['scale'],
-          'opacity': element['opacity'],
+      for (final element in selectedElements) {
+        final elementId = element['id'] ?? 'unknown_${DateTime.now().millisecondsSinceEpoch}';
+        frameData[elementId] = {
+          'id': elementId,
+          'type': element['type'],
+          'position': element['position'] ?? Offset.zero,
+          'rotation': element['rotation'] ?? 0.0,
+          'scale': element['scale'] ?? 1.0,
+          'opacity': element['opacity'] ?? 1.0,
           'name': element['name'], // Also store name for reference
         };
-        print('Recorded data for ${element['name']}: pos=${element['position']}, rot=${element['rotation']}, scale=${element['scale']}, opacity=${element['opacity']}');
+        print('Recorded data for ${element['name']} (ID: $elementId): pos=${element['position']}, rot=${element['rotation']}, scale=${element['scale']}, opacity=${element['opacity']}');
       }
       
       // Store frame data in animation
@@ -6277,6 +7081,8 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
             setState(() {
               // Create a copy of the data with position
               final componentData = Map<String, dynamic>.from(data);
+              // Add unique ID
+              componentData['id'] = _generateElementId(componentData['type'] ?? 'element');
               // Position at left top of the page by default
               componentData['position'] = const Offset(10, 10);
               componentData['rotation'] = 0.0; // Initialize rotation
@@ -6360,6 +7166,7 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                             if (width > 10 && height > 10) {
                               // Create a new container component
                               final containerData = {
+                                'id': _generateElementId('Container'),
                                 'type': 'Container',
                                 'name': 'Container',
                                 'position': Offset(left, top),
@@ -7567,19 +8374,26 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
           // Animation name and controls
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-            child: Row(
-              children: [
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
                 Icon(Icons.movie, color: Colors.blue, size: 22),
                 const SizedBox(width: 8),
-                Text(
-                  anim['name'] ?? 'Animation',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 200),
+                  child: Text(
+                    anim['name'] ?? 'Animation',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                const Spacer(),
+                const SizedBox(width: 8),
                 // Recording toggle button
                 IconButton(
                   icon: Icon(
@@ -7723,9 +8537,10 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                     });
                   },
                 ),
-                const Spacer(),
+                const SizedBox(width: 16),
                 Icon(Icons.settings, color: Colors.white24, size: 20),
-              ],
+                ],
+              ),
             ),
           ),
           // Timeline ruler and keyframes
@@ -7775,65 +8590,8 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                           children: List.generate(totalFrames, (i) {
                             final isKey = keyframes.contains(i);
                             final isPlayhead = i == playheadFrame;
-                                                          return GestureDetector(
-                                onTap: () {
-                                  setState(() {
-                                    // Set the selected frame first
-                                    _selectedFrame = i;
-                                    
-                                    if (isKey) {
-                                      // Remove existing keyframe
-                                      keyframes.remove(i);
-                                      _animations[_selectedAnimationIndex!]['keyframes'] = keyframes;
-                                      
-                                      // Also remove frame data if it exists
-                                      final frameData = _animations[_selectedAnimationIndex!]['frame_data'];
-                                      if (frameData != null) {
-                                        frameData.remove('frame_$i');
-                                      }
-                                    } else {
-                                      // Add new keyframe
-                                      keyframes.add(i);
-                                      keyframes.sort();
-                                      _animations[_selectedAnimationIndex!]['keyframes'] = keyframes;
-                                      
-                                      // If recording is enabled, save current element state
-                                      if (_isRecording) {
-                                        print('Recording enabled - creating keyframe at frame $i');
-                                        final selectedElements = _screenComponents.where((c) => c['selected'] == true).toList();
-                                        if (selectedElements.isNotEmpty) {
-                                          print('Found ${selectedElements.length} selected elements to record');
-                                          final frameData = <String, dynamic>{};
-                                          for (int j = 0; j < selectedElements.length; j++) {
-                                            final element = selectedElements[j];
-                                            frameData['element_$j'] = {
-                                              'position': element['position'],
-                                              'rotation': element['rotation'],
-                                              'scale': element['scale'],
-                                              'opacity': element['opacity'],
-                                            };
-                                          }
-                                          
-                                          // Store frame data in animation
-                                          if (_animations[_selectedAnimationIndex!]['frame_data'] == null) {
-                                            _animations[_selectedAnimationIndex!]['frame_data'] = <String, dynamic>{};
-                                          }
-                                          _animations[_selectedAnimationIndex!]['frame_data']['frame_$i'] = frameData;
-                                          print('Saved keyframe data for frame $i');
-                                        } else {
-                                          print('No elements selected - cannot record keyframe');
-                                        }
-                                      } else {
-                                        print('Recording disabled - keyframe created without element data');
-                                      }
-                                    }
-                                  });
-                                },
-                                onDoubleTap: () {
-                                if (isKey && _hasKeyframeData(i)) {
-                                  _showKeyframeDetails(i);
-                                }
-                              },
+                            return GestureDetector(
+                              onTap: () {
                                 setState(() {
                                   // Set the selected frame first
                                   _selectedFrame = i;
@@ -7854,37 +8612,45 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                                     keyframes.sort();
                                     _animations[_selectedAnimationIndex!]['keyframes'] = keyframes;
                                     
-                                                                         // If recording is enabled, save current element state
-                                     if (_isRecording) {
-                                       print('Recording enabled - creating keyframe at frame $i');
-                                       final selectedElements = _screenComponents.where((c) => c['selected'] == true).toList();
-                                       if (selectedElements.isNotEmpty) {
-                                         print('Found ${selectedElements.length} selected elements to record');
+                                    // If recording is enabled, save current element state
+                                    if (_isRecording) {
+                                      print('Recording enabled - creating keyframe at frame $i');
+                                      final selectedElements = _screenComponents.where((c) => c['selected'] == true).toList();
+                                      if (selectedElements.isNotEmpty) {
+                                        print('Found ${selectedElements.length} selected elements to record');
                                         final frameData = <String, dynamic>{};
-                                        for (int j = 0; j < selectedElements.length; j++) {
-                                          final element = selectedElements[j];
-                                          frameData['element_$j'] = {
-                                            'position': element['position'],
-                                            'rotation': element['rotation'],
-                                            'scale': element['scale'],
-                                            'opacity': element['opacity'],
+                                        for (final element in selectedElements) {
+                                          final elementId = element['id'] ?? 'unknown_${DateTime.now().millisecondsSinceEpoch}';
+                                          frameData[elementId] = {
+                                            'id': elementId,
+                                            'type': element['type'],
+                                            'position': element['position'] ?? Offset.zero,
+                                            'rotation': element['rotation'] ?? 0.0,
+                                            'scale': element['scale'] ?? 1.0,
+                                            'opacity': element['opacity'] ?? 1.0,
+                                            'name': element['name'],
                                           };
                                         }
                                         
                                         // Store frame data in animation
                                         if (_animations[_selectedAnimationIndex!]['frame_data'] == null) {
                                           _animations[_selectedAnimationIndex!]['frame_data'] = <String, dynamic>{};
-                                                                                 }
-                                         _animations[_selectedAnimationIndex!]['frame_data']['frame_$i'] = frameData;
-                                         print('Saved keyframe data for frame $i');
-                                       } else {
-                                         print('No elements selected - cannot record keyframe');
-                                       }
-                                     } else {
-                                       print('Recording disabled - keyframe created without element data');
-                                     }
+                                        }
+                                        _animations[_selectedAnimationIndex!]['frame_data']['frame_$i'] = frameData;
+                                        print('Saved keyframe data for frame $i');
+                                      } else {
+                                        print('No elements selected - cannot record keyframe');
+                                      }
+                                    } else {
+                                      print('Recording disabled - keyframe created without element data');
+                                    }
                                   }
                                 });
+                              },
+                              onDoubleTap: () {
+                                if (isKey && _hasKeyframeData(i)) {
+                                  _showKeyframeDetails(i);
+                                }
                               },
                               child: SizedBox(
                                 width: frameWidth,
@@ -8057,3 +8823,7 @@ class _TimelineRulerPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
+
+
+
+fix this error
