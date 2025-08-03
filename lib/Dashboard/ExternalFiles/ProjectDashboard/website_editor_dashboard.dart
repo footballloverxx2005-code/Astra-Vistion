@@ -3894,6 +3894,233 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
     });
   }
   
+  // Show keyframe details dialog
+  void _showKeyframeDetails(int frame) {
+    if (_selectedAnimationIndex == null || _selectedAnimationIndex! >= _animations.length) {
+      return;
+    }
+    
+    final animation = _animations[_selectedAnimationIndex!];
+    final frameData = animation['frame_data'] as Map<String, dynamic>?;
+    
+    if (frameData == null || !frameData.containsKey('frame_$frame')) {
+      return;
+    }
+    
+    final data = frameData['frame_$frame'] as Map<String, dynamic>;
+    
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: const Color(0xFF252525),
+          title: Text(
+            'Keyframe Details - Frame $frame',
+            style: const TextStyle(color: Colors.white),
+          ),
+          content: SizedBox(
+            width: 400,
+            height: 300,
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Elements: ${data.length}',
+                    style: const TextStyle(color: Colors.white70, fontSize: 16),
+                  ),
+                  const SizedBox(height: 16),
+                  ...data.entries.map((entry) {
+                    final elementData = entry.value as Map<String, dynamic>;
+                    final elementName = elementData['name'] ?? 'Unknown';
+                    final position = elementData['position'] ?? [0.0, 0.0];
+                    final rotation = elementData['rotation'] ?? 0.0;
+                    final scale = elementData['scale'] ?? 1.0;
+                    final opacity = elementData['opacity'] ?? 1.0;
+                    
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1E1E1E),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.amber.withOpacity(0.3)),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            elementName,
+                            style: const TextStyle(
+                              color: Colors.amber,
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Position: (${position[0].toStringAsFixed(1)}, ${position[1].toStringAsFixed(1)})',
+                            style: const TextStyle(color: Colors.white70, fontSize: 12),
+                          ),
+                          Text(
+                            'Rotation: ${rotation.toStringAsFixed(1)}°',
+                            style: const TextStyle(color: Colors.white70, fontSize: 12),
+                          ),
+                          Text(
+                            'Scale: ${scale.toStringAsFixed(2)}',
+                            style: const TextStyle(color: Colors.white70, fontSize: 12),
+                          ),
+                          Text(
+                            'Opacity: ${opacity.toStringAsFixed(2)}',
+                            style: const TextStyle(color: Colors.white70, fontSize: 12),
+                          ),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text(
+                'Close',
+                style: TextStyle(color: Colors.amber),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // Check if a keyframe has data
+  bool _hasKeyframeData(int frame) {
+    if (_selectedAnimationIndex == null || _selectedAnimationIndex! >= _animations.length) {
+      return false;
+    }
+    
+    final animation = _animations[_selectedAnimationIndex!];
+    final frameData = animation['frame_data'] as Map<String, dynamic>?;
+    
+    if (frameData == null || !frameData.containsKey('frame_$frame')) {
+      return false;
+    }
+    
+    final data = frameData['frame_$frame'] as Map<String, dynamic>;
+    return data.isNotEmpty;
+  }
+
+  // Get tooltip text for a keyframe
+  String _getKeyframeTooltip(int frame) {
+    if (_selectedAnimationIndex == null || _selectedAnimationIndex! >= _animations.length) {
+      return 'Frame $frame';
+    }
+    
+    final animation = _animations[_selectedAnimationIndex!];
+    final frameData = animation['frame_data'] as Map<String, dynamic>?;
+    
+    if (frameData == null || !frameData.containsKey('frame_$frame')) {
+      return 'Frame $frame (No data)';
+    }
+    
+    final data = frameData['frame_$frame'] as Map<String, dynamic>;
+    final elementCount = data.length;
+    
+    if (elementCount == 0) {
+      return 'Frame $frame (No elements)';
+    }
+    
+    String tooltip = 'Frame $frame\nElements: $elementCount\n';
+    
+    // Add details for each element
+    data.forEach((key, value) {
+      if (value is Map<String, dynamic>) {
+        final elementName = value['name'] ?? 'Unknown';
+        final position = value['position'] ?? [0.0, 0.0];
+        tooltip += '\n$elementName:\n';
+        tooltip += '  Position: (${position[0].toStringAsFixed(1)}, ${position[1].toStringAsFixed(1)})\n';
+        tooltip += '  Rotation: ${(value['rotation'] ?? 0.0).toStringAsFixed(1)}°\n';
+        tooltip += '  Scale: ${(value['scale'] ?? 1.0).toStringAsFixed(2)}\n';
+        tooltip += '  Opacity: ${(value['opacity'] ?? 1.0).toStringAsFixed(2)}';
+      }
+    });
+    
+    return tooltip;
+  }
+
+  // Create keyframe at current frame with selected element data
+  void _createKeyframeAtCurrentFrame() {
+    print('_createKeyframeAtCurrentFrame called - SelectedAnimation: $_selectedAnimationIndex, SelectedFrame: $_selectedFrame');
+    
+    if (_selectedAnimationIndex == null || _selectedAnimationIndex! >= _animations.length) {
+      print('Cannot create keyframe - no animation selected');
+      // Show warning to user
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('No animation selected. Please select an animation before creating a keyframe.'),
+          duration: const Duration(seconds: 3),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+    
+    final animation = _animations[_selectedAnimationIndex!];
+    final keyframes = List<int>.from(animation['keyframes'] ?? []);
+    
+    // Get selected elements
+    final selectedElements = _screenComponents.where((c) => c['selected'] == true).toList();
+    print('Found ${selectedElements.length} selected elements');
+    
+    if (selectedElements.isNotEmpty) {
+      // Add current frame as keyframe if not already present
+      if (!keyframes.contains(_selectedFrame)) {
+        keyframes.add(_selectedFrame);
+        keyframes.sort();
+        animation['keyframes'] = keyframes;
+        print('Added keyframe at frame $_selectedFrame');
+      }
+      
+      // Store the current state of all selected elements at this frame
+      final frameData = <String, dynamic>{};
+      for (int i = 0; i < selectedElements.length; i++) {
+        final element = selectedElements[i];
+        frameData['element_$i'] = {
+          'position': element['position'],
+          'rotation': element['rotation'],
+          'scale': element['scale'],
+          'opacity': element['opacity'],
+          'name': element['name'], // Also store name for reference
+        };
+        print('Recorded data for ${element['name']}: pos=${element['position']}, rot=${element['rotation']}, scale=${element['scale']}, opacity=${element['opacity']}');
+      }
+      
+      // Store frame data in animation
+      if (animation['frame_data'] == null) {
+        animation['frame_data'] = <String, dynamic>{};
+      }
+      animation['frame_data']['frame_$_selectedFrame'] = frameData;
+      print('Saved frame data for frame $_selectedFrame');
+      
+      setState(() {
+        // Trigger UI update
+      });
+    } else {
+      print('No selected elements found - cannot create keyframe');
+      // Show warning to user
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('No elements selected. Please select elements before creating a keyframe.'),
+          duration: const Duration(seconds: 3),
+          backgroundColor: Colors.orange,
+        ),
+      );
+    }
+  }
+
   // Record keyframe when element properties change
   void _recordKeyframe() {
     print('_recordKeyframe called - Recording: $_isRecording, SelectedAnimation: $_selectedAnimationIndex, SelectedFrame: $_selectedFrame');
@@ -7363,6 +7590,30 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                   onPressed: () {
                     setState(() {
                       _isRecording = !_isRecording;
+                      
+                      // If starting recording, immediately create a keyframe at current frame
+                      if (_isRecording) {
+                        if (_selectedAnimationIndex != null && _selectedAnimationIndex! < _animations.length) {
+                          _createKeyframeAtCurrentFrame();
+                          // Show feedback that keyframe was created
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Keyframe created at frame $_selectedFrame'),
+                              duration: const Duration(seconds: 2),
+                              backgroundColor: Colors.green,
+                            ),
+                          );
+                        } else {
+                          // Show warning if no animation is selected
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('No animation selected. Please select an animation before recording.'),
+                              duration: const Duration(seconds: 3),
+                              backgroundColor: Colors.orange,
+                            ),
+                          );
+                        }
+                      }
                     });
                   },
                   tooltip: _isRecording ? 'Stop Recording' : 'Start Recording',
@@ -7376,12 +7627,55 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                       borderRadius: BorderRadius.circular(4),
                       border: Border.all(color: Colors.red, width: 1),
                     ),
-                    child: Text(
-                      'REC',
-                      style: TextStyle(
-                        color: Colors.red,
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.fiber_manual_record,
+                          color: Colors.red,
+                          size: 8,
+                        ),
+                        const SizedBox(width: 2),
+                        Text(
+                          'REC',
+                          style: TextStyle(
+                            color: Colors.red,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                // Keyframe count indicator
+                if (_selectedAnimationIndex != null && _selectedAnimationIndex! < _animations.length)
+                  Tooltip(
+                    message: 'Keyframes: ${(_animations[_selectedAnimationIndex!]['keyframes'] as List<dynamic>?)?.length ?? 0}',
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: Colors.amber.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(4),
+                        border: Border.all(color: Colors.amber, width: 1),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.diamond,
+                            color: Colors.amber,
+                            size: 8,
+                          ),
+                          const SizedBox(width: 2),
+                          Text(
+                            '${(_animations[_selectedAnimationIndex!]['keyframes'] as List<dynamic>?)?.length ?? 0}',
+                            style: TextStyle(
+                              color: Colors.amber,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
@@ -7482,60 +7776,65 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                             final isKey = keyframes.contains(i);
                             final isPlayhead = i == playheadFrame;
                             return GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  // Set the selected frame first
-                                  _selectedFrame = i;
-                                  
-                                  if (isKey) {
-                                    // Remove existing keyframe
-                                    keyframes.remove(i);
-                                    _animations[_selectedAnimationIndex!]['keyframes'] = keyframes;
+                                onTap: () {
+                                  setState(() {
+                                    // Set the selected frame first
+                                    _selectedFrame = i;
                                     
-                                    // Also remove frame data if it exists
-                                    final frameData = _animations[_selectedAnimationIndex!]['frame_data'];
-                                    if (frameData != null) {
-                                      frameData.remove('frame_$i');
-                                    }
-                                  } else {
-                                    // Add new keyframe
-                                    keyframes.add(i);
-                                    keyframes.sort();
-                                    _animations[_selectedAnimationIndex!]['keyframes'] = keyframes;
-                                    
-                                                                         // If recording is enabled, save current element state
-                                     if (_isRecording) {
-                                       print('Recording enabled - creating keyframe at frame $i');
-                                       final selectedElements = _screenComponents.where((c) => c['selected'] == true).toList();
-                                       if (selectedElements.isNotEmpty) {
-                                         print('Found ${selectedElements.length} selected elements to record');
-                                        final frameData = <String, dynamic>{};
-                                        for (int j = 0; j < selectedElements.length; j++) {
-                                          final element = selectedElements[j];
-                                          frameData['element_$j'] = {
-                                            'position': element['position'],
-                                            'rotation': element['rotation'],
-                                            'scale': element['scale'],
-                                            'opacity': element['opacity'],
-                                          };
+                                    if (isKey) {
+                                      // Remove existing keyframe
+                                      keyframes.remove(i);
+                                      _animations[_selectedAnimationIndex!]['keyframes'] = keyframes;
+                                      
+                                      // Also remove frame data if it exists
+                                      final frameData = _animations[_selectedAnimationIndex!]['frame_data'];
+                                      if (frameData != null) {
+                                        frameData.remove('frame_$i');
+                                      }
+                                    } else {
+                                      // Add new keyframe
+                                      keyframes.add(i);
+                                      keyframes.sort();
+                                      _animations[_selectedAnimationIndex!]['keyframes'] = keyframes;
+                                      
+                                      // If recording is enabled, save current element state
+                                      if (_isRecording) {
+                                        print('Recording enabled - creating keyframe at frame $i');
+                                        final selectedElements = _screenComponents.where((c) => c['selected'] == true).toList();
+                                        if (selectedElements.isNotEmpty) {
+                                          print('Found ${selectedElements.length} selected elements to record');
+                                          final frameData = <String, dynamic>{};
+                                          for (int j = 0; j < selectedElements.length; j++) {
+                                            final element = selectedElements[j];
+                                            frameData['element_$j'] = {
+                                              'position': element['position'],
+                                              'rotation': element['rotation'],
+                                              'scale': element['scale'],
+                                              'opacity': element['opacity'],
+                                            };
+                                          }
+                                          
+                                          // Store frame data in animation
+                                          if (_animations[_selectedAnimationIndex!]['frame_data'] == null) {
+                                            _animations[_selectedAnimationIndex!]['frame_data'] = <String, dynamic>{};
+                                          }
+                                          _animations[_selectedAnimationIndex!]['frame_data']['frame_$i'] = frameData;
+                                          print('Saved keyframe data for frame $i');
+                                        } else {
+                                          print('No elements selected - cannot record keyframe');
                                         }
-                                        
-                                        // Store frame data in animation
-                                        if (_animations[_selectedAnimationIndex!]['frame_data'] == null) {
-                                          _animations[_selectedAnimationIndex!]['frame_data'] = <String, dynamic>{};
-                                                                                 }
-                                         _animations[_selectedAnimationIndex!]['frame_data']['frame_$i'] = frameData;
-                                         print('Saved keyframe data for frame $i');
-                                       } else {
-                                         print('No elements selected - cannot record keyframe');
-                                       }
-                                     } else {
-                                       print('Recording disabled - keyframe created without element data');
-                                     }
+                                      } else {
+                                        print('Recording disabled - keyframe created without element data');
+                                      }
+                                    }
+                                  });
+                                },
+                                onDoubleTap: () {
+                                  if (isKey && _hasKeyframeData(i)) {
+                                    _showKeyframeDetails(i);
                                   }
-                                });
-                              },
-                              child: SizedBox(
+                                },
+                                child: SizedBox(
                                 width: frameWidth,
                                 child: Stack(
                                   alignment: Alignment.center,
@@ -7547,8 +7846,14 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                                             size: 18, color: Colors.amber.withOpacity(0.8)),
                                         childWhenDragging: Icon(Icons.diamond,
                                             size: 18, color: Colors.amber.withOpacity(0.3)),
-                                        child: Icon(Icons.diamond,
-                                            size: 18, color: Colors.amber),
+                                        child: Tooltip(
+                                          message: _getKeyframeTooltip(i),
+                                          child: Icon(
+                                            Icons.diamond,
+                                            size: 18,
+                                            color: _hasKeyframeData(i) ? Colors.amber : Colors.amber.withOpacity(0.5),
+                                          ),
+                                        ),
                                         onDragEnd: (details) {
                                           // Calculate new frame position based on drag end position
                                           final RenderBox renderBox = context.findRenderObject() as RenderBox;
