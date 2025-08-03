@@ -238,7 +238,351 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
   String _generateElementId(String type) {
     return '${type}_${DateTime.now().millisecondsSinceEpoch}_${_screenComponents.length}';
   }
-
+  
+  // Show context menu for animations
+  void _showAnimationContextMenu(BuildContext context, Offset position, int animationIndex) {
+    showMenu(
+      context: context,
+      position: RelativeRect.fromLTRB(position.dx, position.dy, position.dx + 1, position.dy + 1),
+      items: [
+        PopupMenuItem(
+          value: 'rename',
+          child: Row(
+            children: [
+              Icon(Icons.edit, color: Colors.blue, size: 18),
+              SizedBox(width: 12),
+              Expanded(child: Text('Rename', style: TextStyle(color: Colors.white))),
+              Text('F2', style: TextStyle(color: Colors.white38, fontSize: 12)),
+            ],
+          ),
+        ),
+        PopupMenuDivider(height: 1),
+        PopupMenuItem(
+          value: 'delete',
+          child: Row(
+            children: [
+              Icon(Icons.delete, color: Colors.red, size: 18),
+              SizedBox(width: 12),
+              Expanded(child: Text('Delete', style: TextStyle(color: Colors.red))),
+              Text('Del', style: TextStyle(color: Colors.white38, fontSize: 12)),
+            ],
+          ),
+        ),
+      ],
+      color: Color(0xFF2D2D2D),
+      elevation: 8,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+    ).then((value) {
+      if (value == 'rename') {
+        _renameAnimation(animationIndex);
+      } else if (value == 'delete') {
+        _deleteAnimationWithConfirmation(animationIndex);
+      }
+    });
+  }
+  
+  // Show context menu for elements
+  void _showElementContextMenu(BuildContext context, Offset position, int elementIndex) {
+    showMenu(
+      context: context,
+      position: RelativeRect.fromLTRB(position.dx, position.dy, position.dx + 1, position.dy + 1),
+      items: [
+        PopupMenuItem(
+          value: 'rename',
+          child: Row(
+            children: [
+              Icon(Icons.edit, color: Colors.blue, size: 18),
+              SizedBox(width: 12),
+              Expanded(child: Text('Rename', style: TextStyle(color: Colors.white))),
+              Text('F2', style: TextStyle(color: Colors.white38, fontSize: 12)),
+            ],
+          ),
+        ),
+        PopupMenuDivider(height: 1),
+        PopupMenuItem(
+          value: 'delete',
+          child: Row(
+            children: [
+              Icon(Icons.delete, color: Colors.red, size: 18),
+              SizedBox(width: 12),
+              Expanded(child: Text('Delete', style: TextStyle(color: Colors.red))),
+              Text('Del', style: TextStyle(color: Colors.white38, fontSize: 12)),
+            ],
+          ),
+        ),
+      ],
+      color: Color(0xFF2D2D2D),
+      elevation: 8,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+    ).then((value) {
+      if (value == 'rename') {
+        _renameElement(elementIndex);
+      } else if (value == 'delete') {
+        _deleteElementWithConfirmation(elementIndex);
+      }
+        });
+  }
+  
+  // Rename animation dialog
+  void _renameAnimation(int animationIndex) {
+    if (animationIndex < 0 || animationIndex >= _animations.length) return;
+    
+    final currentName = _animations[animationIndex]['name'] ?? 'Animation';
+    final controller = TextEditingController(text: currentName);
+    
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Color(0xFF252525),
+        title: Row(
+          children: [
+            Icon(Icons.edit, color: Colors.blue, size: 20),
+            SizedBox(width: 8),
+            Text('Rename Animation', style: TextStyle(color: Colors.white)),
+          ],
+        ),
+        content: TextField(
+          controller: controller,
+          style: TextStyle(color: Colors.white),
+          decoration: InputDecoration(
+            labelText: 'Animation Name',
+            labelStyle: TextStyle(color: Colors.white70),
+            enabledBorder: OutlineInputBorder(
+              borderSide: BorderSide(color: Colors.white54),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderSide: BorderSide(color: Colors.blue),
+            ),
+          ),
+          autofocus: true,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Cancel', style: TextStyle(color: Colors.white70)),
+          ),
+          TextButton(
+            onPressed: () {
+              if (controller.text.trim().isNotEmpty) {
+                setState(() {
+                  _animations[animationIndex]['name'] = controller.text.trim();
+                });
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Animation renamed to "${controller.text.trim()}"'),
+                    backgroundColor: Colors.green,
+                  ),
+                );
+              }
+            },
+            child: Text('Rename', style: TextStyle(color: Colors.blue)),
+          ),
+        ],
+      ),
+    );
+  }
+  
+  // Delete animation with confirmation
+  void _deleteAnimationWithConfirmation(int animationIndex) {
+    if (animationIndex < 0 || animationIndex >= _animations.length) return;
+    
+    final animationName = _animations[animationIndex]['name'] ?? 'Animation';
+    
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Color(0xFF252525),
+        title: Row(
+          children: [
+            Icon(Icons.warning, color: Colors.red, size: 20),
+            SizedBox(width: 8),
+            Text('Delete Animation', style: TextStyle(color: Colors.white)),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Are you sure you want to delete the animation "$animationName"?',
+              style: TextStyle(color: Colors.white),
+            ),
+            SizedBox(height: 8),
+            Text(
+              'This action cannot be undone.',
+              style: TextStyle(color: Colors.red.withOpacity(0.8), fontSize: 12),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Cancel', style: TextStyle(color: Colors.white70)),
+          ),
+          TextButton(
+            onPressed: () {
+              setState(() {
+                _animations.removeAt(animationIndex);
+                // Reset selected animation if it was deleted
+                if (_selectedAnimationIndex == animationIndex) {
+                  _selectedAnimationIndex = null;
+                } else if (_selectedAnimationIndex != null && _selectedAnimationIndex! > animationIndex) {
+                  _selectedAnimationIndex = _selectedAnimationIndex! - 1;
+                }
+              });
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Animation "$animationName" deleted'),
+                  backgroundColor: Colors.red,
+                ),
+              );
+            },
+            child: Text('Delete', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+  }
+  
+  // Rename element dialog
+  void _renameElement(int elementIndex) {
+    if (elementIndex < 0 || elementIndex >= _screenComponents.length) return;
+    
+    final currentName = _screenComponents[elementIndex]['name'] ?? 'Element';
+    final controller = TextEditingController(text: currentName);
+    
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Color(0xFF252525),
+        title: Row(
+          children: [
+            Icon(Icons.edit, color: Colors.blue, size: 20),
+            SizedBox(width: 8),
+            Text('Rename Element', style: TextStyle(color: Colors.white)),
+          ],
+        ),
+        content: TextField(
+          controller: controller,
+          style: TextStyle(color: Colors.white),
+          decoration: InputDecoration(
+            labelText: 'Element Name',
+            labelStyle: TextStyle(color: Colors.white70),
+            enabledBorder: OutlineInputBorder(
+              borderSide: BorderSide(color: Colors.white54),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderSide: BorderSide(color: Colors.blue),
+            ),
+          ),
+          autofocus: true,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Cancel', style: TextStyle(color: Colors.white70)),
+          ),
+          TextButton(
+            onPressed: () {
+              if (controller.text.trim().isNotEmpty) {
+                setState(() {
+                  _screenComponents[elementIndex]['name'] = controller.text.trim();
+                });
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Element renamed to "${controller.text.trim()}"'),
+                    backgroundColor: Colors.green,
+                  ),
+                );
+              }
+            },
+            child: Text('Rename', style: TextStyle(color: Colors.blue)),
+          ),
+        ],
+      ),
+    );
+  }
+  
+  // Delete element with confirmation
+  void _deleteElementWithConfirmation(int elementIndex) {
+    if (elementIndex < 0 || elementIndex >= _screenComponents.length) return;
+    
+    final elementName = _screenComponents[elementIndex]['name'] ?? 'Element';
+    final elementId = _screenComponents[elementIndex]['id'];
+    
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Color(0xFF252525),
+        title: Row(
+          children: [
+            Icon(Icons.warning, color: Colors.red, size: 20),
+            SizedBox(width: 8),
+            Text('Delete Element', style: TextStyle(color: Colors.white)),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Are you sure you want to delete the element "$elementName"?',
+              style: TextStyle(color: Colors.white),
+            ),
+            SizedBox(height: 8),
+            Text(
+              'This will also remove it from all animations.',
+              style: TextStyle(color: Colors.orange.withOpacity(0.8), fontSize: 12),
+            ),
+            SizedBox(height: 4),
+            Text(
+              'This action cannot be undone.',
+              style: TextStyle(color: Colors.red.withOpacity(0.8), fontSize: 12),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Cancel', style: TextStyle(color: Colors.white70)),
+          ),
+          TextButton(
+            onPressed: () {
+              setState(() {
+                // Remove element from screen components
+                _screenComponents.removeAt(elementIndex);
+                
+                // Remove element from all animations
+                for (final animation in _animations) {
+                  final frameData = animation['frame_data'] as Map<String, dynamic>?;
+                  if (frameData != null) {
+                    for (final frameKey in frameData.keys.toList()) {
+                      final frame = frameData[frameKey] as Map<String, dynamic>?;
+                      if (frame != null) {
+                        frame.remove(elementId);
+                      }
+                    }
+                  }
+                }
+              });
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Element "$elementName" deleted'),
+                  backgroundColor: Colors.red,
+                ),
+              );
+            },
+            child: Text('Delete', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+  }
+  
   @override
   void initState() {
     super.initState();
@@ -532,35 +876,46 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                                               itemBuilder: (context, index) {
                                                 final component =
                                                     _screenComponents[index];
-                                                return ListTile(
-                                                  title: Text(
-                                                      component['name'] ??
-                                                          'Element',
-                                                      style: TextStyle(
-                                                          color: component['selected'] == true 
-                                                              ? Colors.white 
-                                                              : Colors.white70,
-                                                          fontWeight: component['selected'] == true 
-                                                              ? FontWeight.w600 
-                                                              : FontWeight.normal)),
-                                                  leading: Icon(Icons.widgets,
-                                                      color: component['selected'] == true 
-                                                          ? Colors.blue 
-                                                          : Colors.white54),
-                                                  selected: component['selected'] == true,
-                                                  selectedTileColor: Colors.blue.withOpacity(0.2),
-                                                  onTap: () {
-                                                    setState(() {
-                                                      for (var c
-                                                          in _screenComponents) {
-                                                        c['selected'] = false;
-                                                      }
-                                                      component['selected'] =
-                                                          true;
-                                                      _isScreenSelected = true;
-                                                      _selectedRightTab = 'Animation';
-                                                    });
+                                                return GestureDetector(
+                                                  onSecondaryTapDown: (details) {
+                                                    _showElementContextMenu(
+                                                      context,
+                                                      details.globalPosition,
+                                                      index,
+                                                    );
                                                   },
+                                                  child: ListTile(
+                                                    title: Text(
+                                                        component['name'] ??
+                                                            'Element',
+                                                        style: TextStyle(
+                                                            color: component['selected'] == true 
+                                                                ? Colors.white 
+                                                                : Colors.white70,
+                                                            fontWeight: component['selected'] == true 
+                                                                ? FontWeight.w600 
+                                                                : FontWeight.normal)),
+                                                                                                         leading: Icon(Icons.widgets,
+                                                         color: component['selected'] == true 
+                                                             ? Colors.blue 
+                                                             : Colors.white54),
+                                                     trailing: Icon(Icons.more_vert, 
+                                                         color: Colors.white24, size: 16),
+                                                     selected: component['selected'] == true,
+                                                    selectedTileColor: Colors.blue.withOpacity(0.2),
+                                                    onTap: () {
+                                                      setState(() {
+                                                        for (var c
+                                                            in _screenComponents) {
+                                                          c['selected'] = false;
+                                                        }
+                                                        component['selected'] =
+                                                            true;
+                                                        _isScreenSelected = true;
+                                                        _selectedRightTab = 'Animation';
+                                                      });
+                                                    },
+                                                  ),
                                                 );
                                               },
                                             ),
@@ -695,22 +1050,33 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                                               itemCount: _animations.length,
                                               itemBuilder: (context, index) {
                                                 final anim = _animations[index];
-                                                return ListTile(
-                                                  title: Text(
-                                                      anim['name'] ??
-                                                          'Animation',
-                                                      style: TextStyle(
-                                                          color: Colors.white)),
-                                                  leading: Icon(Icons.movie,
-                                                      color: Colors.white54),
-                                                  selected: _selectedAnimationIndex == index,
-                                                  selectedTileColor: Colors.blue.withOpacity(0.2),
-                                                  onTap: () {
-                                                    setState(() {
-                                                      _selectedAnimationIndex =
-                                                          index;
-                                                    });
+                                                return GestureDetector(
+                                                  onSecondaryTapDown: (details) {
+                                                    _showAnimationContextMenu(
+                                                      context,
+                                                      details.globalPosition,
+                                                      index,
+                                                    );
                                                   },
+                                                  child: ListTile(
+                                                    title: Text(
+                                                        anim['name'] ??
+                                                            'Animation',
+                                                        style: TextStyle(
+                                                            color: Colors.white)),
+                                                    leading: Icon(Icons.movie,
+                                                        color: Colors.white54),
+                                                    trailing: Icon(Icons.more_vert, 
+                                                        color: Colors.white24, size: 16),
+                                                    selected: _selectedAnimationIndex == index,
+                                                    selectedTileColor: Colors.blue.withOpacity(0.2),
+                                                    onTap: () {
+                                                      setState(() {
+                                                        _selectedAnimationIndex =
+                                                            index;
+                                                      });
+                                                    },
+                                                  ),
                                                 );
                                               },
                                             ),
