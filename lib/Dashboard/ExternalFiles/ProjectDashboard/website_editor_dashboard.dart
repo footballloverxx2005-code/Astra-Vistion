@@ -244,8 +244,8 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
     showMenu(
       context: context,
       position: RelativeRect.fromLTRB(position.dx, position.dy, position.dx + 1, position.dy + 1),
-      items: [
-        PopupMenuItem(
+      items: <PopupMenuEntry<String>>[
+        PopupMenuItem<String>(
           value: 'rename',
           child: Row(
             children: [
@@ -257,7 +257,7 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
           ),
         ),
         PopupMenuDivider(height: 1),
-        PopupMenuItem(
+        PopupMenuItem<String>(
           value: 'delete',
           child: Row(
             children: [
@@ -286,8 +286,8 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
     showMenu(
       context: context,
       position: RelativeRect.fromLTRB(position.dx, position.dy, position.dx + 1, position.dy + 1),
-      items: [
-        PopupMenuItem(
+      items: <PopupMenuEntry<String>>[
+        PopupMenuItem<String>(
           value: 'rename',
           child: Row(
             children: [
@@ -299,7 +299,7 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
           ),
         ),
         PopupMenuDivider(height: 1),
-        PopupMenuItem(
+        PopupMenuItem<String>(
           value: 'delete',
           child: Row(
             children: [
