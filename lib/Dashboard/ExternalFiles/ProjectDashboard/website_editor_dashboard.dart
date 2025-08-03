@@ -1308,7 +1308,7 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                                 ),
                                 child: Column(
                                   children: [
-                                    // First third: Added elements
+                                    // Top half: Added elements
                                     Expanded(
                                       child: Column(
                                         crossAxisAlignment:
@@ -1396,7 +1396,7 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                                     // Divider
                                     Container(
                                         height: 1, color: Color(0xFF222222)),
-                                    // Second third: Animations list and plus button
+                                    // Bottom half: Animations list and plus button
                                     Expanded(
                                       child: Column(
                                         crossAxisAlignment:
@@ -1554,69 +1554,7 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                                         ],
                                       ),
                                     ),
-                                    // Divider
-                                    Container(
-                                        height: 1, color: Color(0xFF222222)),
-                                    // Third third: Nodes list and plus button
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Padding(
-                                            padding: const EdgeInsets.all(8.0),
-                                            child: Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment
-                                                      .spaceBetween,
-                                              children: [
-                                                Text('Nodes',
-                                                    style: TextStyle(
-                                                        color: Colors.white,
-                                                        fontSize: 16,
-                                                        fontWeight:
-                                                            FontWeight.bold)),
-                                                IconButton(
-                                                  icon: Icon(Icons.account_tree,
-                                                      color: Colors.white),
-                                                  onPressed: () {
-                                                    setState(() {
-                                                      _showNodesPage = true;
-                                                    });
-                                                  },
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                          Expanded(
-                                            child: ListView.builder(
-                                              itemCount: _nodes.length,
-                                              itemBuilder: (context, index) {
-                                                final node = _nodes[index];
-                                                return ListTile(
-                                                  title: Text(
-                                                      node['name'] ??
-                                                          'Node',
-                                                      style: TextStyle(
-                                                          color: Colors.white)),
-                                                  leading: Icon(Icons.account_tree,
-                                                      color: Colors.white54),
-                                                  trailing: Icon(Icons.more_vert, 
-                                                      color: Colors.white24, size: 16),
-                                                  selected: _selectedNodeIndex == index,
-                                                  selectedTileColor: Colors.green.withOpacity(0.2),
-                                                  onTap: () {
-                                                    setState(() {
-                                                      _selectedNodeIndex = index;
-                                                    });
-                                                  },
-                                                );
-                                              },
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
+
                                   ],
                                 ),
                               ),
@@ -2179,6 +2117,32 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                       const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                 ),
                 child: const Text('Animition', style: TextStyle(fontSize: 14)),
+              ),
+              const SizedBox(width: 8),
+              TextButton(
+                onPressed: () {
+                  setState(() {
+                    _showNodesPage = true;
+                  });
+                },
+                style: TextButton.styleFrom(
+                  backgroundColor:
+                      _showNodesPage ? Colors.green : Colors.transparent,
+                  foregroundColor:
+                      _showNodesPage ? Colors.white : Colors.white70,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(6)),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.account_tree, size: 16),
+                    SizedBox(width: 4),
+                    Text('Nodes', style: TextStyle(fontSize: 14)),
+                  ],
+                ),
               ),
             ],
           ),
