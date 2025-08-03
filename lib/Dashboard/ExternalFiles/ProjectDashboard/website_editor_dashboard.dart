@@ -230,6 +230,9 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
   
   // Animation playback state
   bool _isPlaying = false;
+  Timer? _animationTimer;
+  int _currentPlaybackFrame = 0;
+  double _animationSpeed = 1.0; // Speed multiplier (1.0 = normal speed)
 
   @override
   void initState() {
@@ -271,6 +274,7 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
 
   @override
   void dispose() {
+    _animationTimer?.cancel();
     _navigationScrollController.dispose();
     _componentLibraryController.dispose();
     _rightSidebarController.dispose();
@@ -3811,41 +3815,52 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
       return;
     }
     
-    setState(() {
-      _isPlaying = true;
-    });
-    
     final animation = _animations[_selectedAnimationIndex!];
     final keyframes = List<int>.from(animation['keyframes'] ?? []);
     
     if (keyframes.isEmpty) {
-      setState(() {
-        _isPlaying = false;
-      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('No keyframes found in animation. Please add keyframes before playing.'),
+          duration: const Duration(seconds: 3),
+          backgroundColor: Colors.orange,
+        ),
+      );
       return;
     }
     
-    // Enhanced playback - cycle through keyframes and apply stored data
-    int currentKeyframeIndex = 0;
+    // Sort keyframes to ensure proper order
+    keyframes.sort();
     
-    Timer.periodic(Duration(milliseconds: 500), (timer) { // Slower for better visibility
-      if (!_isPlaying || currentKeyframeIndex >= keyframes.length) {
+    setState(() {
+      _isPlaying = true;
+      _currentPlaybackFrame = 0;
+    });
+    
+    // Start animation from frame 0 to the last keyframe
+    final maxFrame = keyframes.last;
+    
+    // Each frame represents 1ms, but we use 16ms (60fps) for smooth animation
+    // Speed can be adjusted by the speed multiplier
+    final frameInterval = (16 / _animationSpeed).round().clamp(1, 1000);
+    _animationTimer = Timer.periodic(Duration(milliseconds: frameInterval), (timer) {
+      if (!_isPlaying || _currentPlaybackFrame > maxFrame) {
         timer.cancel();
+        _animationTimer = null;
         setState(() {
           _isPlaying = false;
+          _currentPlaybackFrame = 0;
         });
         return;
       }
       
-      final currentFrame = keyframes[currentKeyframeIndex];
-      
       setState(() {
-        _selectedFrame = currentFrame;
-        // Apply saved keyframe data
-        _applyKeyframeData(currentFrame);
+        _selectedFrame = _currentPlaybackFrame;
+        // Apply interpolated data for current frame
+        _applyInterpolatedFrameData(_currentPlaybackFrame, keyframes);
       });
       
-      currentKeyframeIndex++;
+      _currentPlaybackFrame++;
     });
   }
   
@@ -3888,10 +3903,141 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
     }
   }
   
+  // Apply interpolated frame data between keyframes
+  void _applyInterpolatedFrameData(int currentFrame, List<int> keyframes) {
+    if (_selectedAnimationIndex == null || _selectedAnimationIndex! >= _animations.length) {
+      return;
+    }
+    
+    final animation = _animations[_selectedAnimationIndex!];
+    final frameData = animation['frame_data'];
+    
+    if (frameData == null) {
+      return;
+    }
+    
+    // Find the two keyframes to interpolate between
+    int? prevKeyframe;
+    int? nextKeyframe;
+    
+    // Find previous and next keyframes
+    for (int i = 0; i < keyframes.length; i++) {
+      if (keyframes[i] <= currentFrame) {
+        prevKeyframe = keyframes[i];
+      }
+      if (keyframes[i] >= currentFrame && nextKeyframe == null) {
+        nextKeyframe = keyframes[i];
+        break;
+      }
+    }
+    
+    // Handle edge cases
+    if (prevKeyframe == null && nextKeyframe != null) {
+      // Before first keyframe - hold the first keyframe's values
+      _applyKeyframeData(nextKeyframe);
+      return;
+    } else if (prevKeyframe != null && nextKeyframe == null) {
+      // After last keyframe - hold the last keyframe's values
+      _applyKeyframeData(prevKeyframe);
+      return;
+    } else if (prevKeyframe == null && nextKeyframe == null) {
+      // No keyframes at all
+      return;
+    }
+    
+    // If we're exactly on a keyframe, apply its data directly
+    if (currentFrame == prevKeyframe || currentFrame == nextKeyframe) {
+      _applyKeyframeData(currentFrame);
+      return;
+    }
+    
+    // Get data for both keyframes
+    final prevFrameData = frameData['frame_$prevKeyframe'];
+    final nextFrameData = frameData['frame_$nextKeyframe'];
+    
+    if (prevFrameData == null || nextFrameData == null) {
+      return;
+    }
+    
+    // Calculate interpolation factor (0.0 to 1.0)
+    double t = 0.0;
+    if (nextKeyframe! != prevKeyframe!) {
+      t = (currentFrame - prevKeyframe!) / (nextKeyframe! - prevKeyframe!);
+    }
+    
+    // Apply interpolated data to elements
+    for (int i = 0; i < _screenComponents.length; i++) {
+      final prevElementData = prevFrameData['element_$i'];
+      final nextElementData = nextFrameData['element_$i'];
+      
+      if (prevElementData != null && nextElementData != null) {
+        final component = _screenComponents[i];
+        
+        // Interpolate position
+        final prevPos = prevElementData['position'];
+        final nextPos = nextElementData['position'];
+        if (prevPos != null && nextPos != null) {
+          Offset interpolatedPos;
+          if (prevPos is Offset && nextPos is Offset) {
+            interpolatedPos = Offset.lerp(prevPos, nextPos, t)!;
+          } else if (prevPos is List && nextPos is List && 
+                     prevPos.length >= 2 && nextPos.length >= 2) {
+            final x = prevPos[0] + (nextPos[0] - prevPos[0]) * t;
+            final y = prevPos[1] + (nextPos[1] - prevPos[1]) * t;
+            interpolatedPos = Offset(x.toDouble(), y.toDouble());
+          } else {
+            interpolatedPos = prevPos is Offset ? prevPos : Offset.zero;
+          }
+          component['position'] = interpolatedPos;
+        }
+        
+        // Interpolate rotation
+        final prevRot = prevElementData['rotation'] ?? 0.0;
+        final nextRot = nextElementData['rotation'] ?? 0.0;
+        component['rotation'] = prevRot + (nextRot - prevRot) * t;
+        
+        // Interpolate scale
+        final prevScale = prevElementData['scale'] ?? 1.0;
+        final nextScale = nextElementData['scale'] ?? 1.0;
+        component['scale'] = prevScale + (nextScale - prevScale) * t;
+        
+        // Interpolate opacity
+        final prevOpacity = prevElementData['opacity'] ?? 1.0;
+        final nextOpacity = nextElementData['opacity'] ?? 1.0;
+        component['opacity'] = prevOpacity + (nextOpacity - prevOpacity) * t;
+      }
+    }
+  }
+
   void _stopAnimation() {
+    _animationTimer?.cancel();
+    _animationTimer = null;
     setState(() {
       _isPlaying = false;
+      _currentPlaybackFrame = 0;
+      // Reset to first frame
+      _selectedFrame = 0;
     });
+    
+    // Optionally reset elements to their initial positions
+    // You can uncomment this if you want elements to return to start positions
+    // _resetElementsToInitialState();
+  }
+  
+  // Optional: Reset elements to their initial state
+  void _resetElementsToInitialState() {
+    if (_selectedAnimationIndex == null || _selectedAnimationIndex! >= _animations.length) {
+      return;
+    }
+    
+    final animation = _animations[_selectedAnimationIndex!];
+    final keyframes = List<int>.from(animation['keyframes'] ?? []);
+    
+    if (keyframes.isNotEmpty) {
+      keyframes.sort();
+      // Apply the first keyframe's data
+      _applyKeyframeData(keyframes.first);
+    }
   }
   
   // Show keyframe details dialog
