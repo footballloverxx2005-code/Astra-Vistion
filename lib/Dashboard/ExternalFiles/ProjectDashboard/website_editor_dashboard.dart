@@ -2856,7 +2856,7 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
               children: [
                 Icon(
                   getIconForType(interaction['type']),
-                  color: Colors.white70,
+                  color: interaction['type'] == 'nodes_action' ? Colors.green : Colors.white70,
                   size: 18,
                 ),
                 const SizedBox(width: 8),
@@ -2876,6 +2876,15 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                   ),
                 ),
                 const SizedBox(width: 8),
+                // Show node editor indicator for nodes actions
+                if (interaction['type'] == 'nodes_action')
+                  Icon(
+                    Icons.open_in_new,
+                    color: Colors.green,
+                    size: 14,
+                  ),
+                if (interaction['type'] == 'nodes_action')
+                  const SizedBox(width: 8),
                 if (interaction['selected'])
                   Container(
                     width: 8,
