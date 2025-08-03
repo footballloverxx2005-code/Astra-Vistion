@@ -2821,6 +2821,15 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
         color: Colors.transparent,
         child: InkWell(
           onTap: () {
+            // Check if this is a nodes action - if so, open nodes editor directly
+            if (interaction['type'] == 'nodes_action') {
+              setState(() {
+                _showNodesPage = true;
+                _currentEditingInteraction = interaction;
+              });
+              return;
+            }
+
             setState(() {
               // Get the currently selected component
               final selectedComponent = _screenComponents.firstWhere(
