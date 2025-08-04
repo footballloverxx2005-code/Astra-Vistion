@@ -254,7 +254,7 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
 
   // 1. Add state for selected animation
   int? _selectedAnimationIndex;
-  
+
   // Nodes system
   List<Map<String, dynamic>> _nodes = [];
   int? _selectedNodeIndex;
@@ -263,26 +263,28 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
 
   // 1. Add state for selected frame and per-animation keyframes
   int _selectedFrame = 0;
-  
+
   // Recording state for keyframes
   bool _isRecording = false;
-  
+
   // Animation playback state
   bool _isPlaying = false;
   Timer? _animationTimer;
   int _currentPlaybackFrame = 0;
   double _animationSpeed = 1.0; // Speed multiplier (1.0 = normal speed)
-  
+
   // Helper method to generate unique IDs for elements
   String _generateElementId(String type) {
     return '${type}_${DateTime.now().millisecondsSinceEpoch}_${_screenComponents.length}';
   }
-  
+
   // Show context menu for animations
-  void _showAnimationContextMenu(BuildContext context, Offset position, int animationIndex) {
+  void _showAnimationContextMenu(
+      BuildContext context, Offset position, int animationIndex) {
     showMenu(
       context: context,
-      position: RelativeRect.fromLTRB(position.dx, position.dy, position.dx + 1, position.dy + 1),
+      position: RelativeRect.fromLTRB(
+          position.dx, position.dy, position.dx + 1, position.dy + 1),
       items: <PopupMenuEntry<String>>[
         PopupMenuItem<String>(
           value: 'rename',
@@ -290,7 +292,8 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
             children: [
               Icon(Icons.edit, color: Colors.blue, size: 18),
               SizedBox(width: 12),
-              Expanded(child: Text('Rename', style: TextStyle(color: Colors.white))),
+              Expanded(
+                  child: Text('Rename', style: TextStyle(color: Colors.white))),
               Text('F2', style: TextStyle(color: Colors.white38, fontSize: 12)),
             ],
           ),
@@ -302,8 +305,10 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
             children: [
               Icon(Icons.delete, color: Colors.red, size: 18),
               SizedBox(width: 12),
-              Expanded(child: Text('Delete', style: TextStyle(color: Colors.red))),
-              Text('Del', style: TextStyle(color: Colors.white38, fontSize: 12)),
+              Expanded(
+                  child: Text('Delete', style: TextStyle(color: Colors.red))),
+              Text('Del',
+                  style: TextStyle(color: Colors.white38, fontSize: 12)),
             ],
           ),
         ),
@@ -319,12 +324,14 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
       }
     });
   }
-  
+
   // Show context menu for elements
-  void _showElementContextMenu(BuildContext context, Offset position, int elementIndex) {
+  void _showElementContextMenu(
+      BuildContext context, Offset position, int elementIndex) {
     showMenu(
       context: context,
-      position: RelativeRect.fromLTRB(position.dx, position.dy, position.dx + 1, position.dy + 1),
+      position: RelativeRect.fromLTRB(
+          position.dx, position.dy, position.dx + 1, position.dy + 1),
       items: <PopupMenuEntry<String>>[
         PopupMenuItem<String>(
           value: 'rename',
@@ -332,7 +339,8 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
             children: [
               Icon(Icons.edit, color: Colors.blue, size: 18),
               SizedBox(width: 12),
-              Expanded(child: Text('Rename', style: TextStyle(color: Colors.white))),
+              Expanded(
+                  child: Text('Rename', style: TextStyle(color: Colors.white))),
               Text('F2', style: TextStyle(color: Colors.white38, fontSize: 12)),
             ],
           ),
@@ -344,8 +352,10 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
             children: [
               Icon(Icons.delete, color: Colors.red, size: 18),
               SizedBox(width: 12),
-              Expanded(child: Text('Delete', style: TextStyle(color: Colors.red))),
-              Text('Del', style: TextStyle(color: Colors.white38, fontSize: 12)),
+              Expanded(
+                  child: Text('Delete', style: TextStyle(color: Colors.red))),
+              Text('Del',
+                  style: TextStyle(color: Colors.white38, fontSize: 12)),
             ],
           ),
         ),
@@ -359,7 +369,7 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
       } else if (value == 'delete') {
         _deleteElementWithConfirmation(elementIndex);
       }
-                });
+    });
   }
 
   // Open nodes system for an element
@@ -456,21 +466,33 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                               children: [
                                 _buildNodeLibraryCategory('Input', [
                                   {'name': 'Mouse Input', 'icon': Icons.mouse},
-                                  {'name': 'Keyboard Input', 'icon': Icons.keyboard},
+                                  {
+                                    'name': 'Keyboard Input',
+                                    'icon': Icons.keyboard
+                                  },
                                   {'name': 'Time', 'icon': Icons.access_time},
                                 ]),
                                 _buildNodeLibraryCategory('Math', [
                                   {'name': 'Add', 'icon': Icons.add},
                                   {'name': 'Multiply', 'icon': Icons.close},
-                                  {'name': 'Compare', 'icon': Icons.compare_arrows},
+                                  {
+                                    'name': 'Compare',
+                                    'icon': Icons.compare_arrows
+                                  },
                                 ]),
                                 _buildNodeLibraryCategory('Animation', [
                                   {'name': 'Move', 'icon': Icons.open_with},
-                                  {'name': 'Rotate', 'icon': Icons.rotate_right},
+                                  {
+                                    'name': 'Rotate',
+                                    'icon': Icons.rotate_right
+                                  },
                                   {'name': 'Scale', 'icon': Icons.zoom_out_map},
                                 ]),
                                 _buildNodeLibraryCategory('Effects', [
-                                  {'name': 'Color Change', 'icon': Icons.palette},
+                                  {
+                                    'name': 'Color Change',
+                                    'icon': Icons.palette
+                                  },
                                   {'name': 'Opacity', 'icon': Icons.opacity},
                                   {'name': 'Shadow', 'icon': Icons.blur_on},
                                 ]),
@@ -552,7 +574,8 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                       Navigator.of(context).pop();
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text('Node setup saved for ${component['name']}'),
+                          content:
+                              Text('Node setup saved for ${component['name']}'),
                           backgroundColor: Colors.green,
                         ),
                       );
@@ -590,420 +613,436 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
           ],
         ),
       ),
-         );
-   }
+    );
+  }
 
-       // Build nodes page overlay
-    Widget _buildNodesPage() {
-      // If editing a specific interaction, show the node editor
-      if (_currentEditingInteraction != null) {
-        return _buildInteractionNodeEditor(_currentEditingInteraction!);
-      }
-
-      return Container(
-        color: Color(0xFF151515),
-        child: Column(
-          children: [
-            // Header
-            Container(
-              padding: EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Color(0xFF2D2D2D),
-                border: Border(bottom: BorderSide(color: Colors.white24)),
-              ),
-              child: Row(
-                children: [
-                  Icon(Icons.account_tree, color: Colors.green, size: 24),
-                  SizedBox(width: 12),
-                  Text(
-                    'Nodes Editor',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Spacer(),
-                  IconButton(
-                    icon: Icon(Icons.close, color: Colors.white),
-                    onPressed: () {
-                      setState(() {
-                        _showNodesPage = false;
-                        _currentEditingInteraction = null;
-                      });
-                    },
-                  ),
-                ],
-              ),
-            ),
-           // Content
-           Expanded(
-             child: Padding(
-               padding: EdgeInsets.all(40),
-               child: Column(
-                 mainAxisAlignment: MainAxisAlignment.center,
-                 children: [
-                   Icon(
-                     Icons.account_tree,
-                     color: Colors.green,
-                     size: 120,
-                   ),
-                   SizedBox(height: 32),
-                   Text(
-                     'Please open a node file',
-                     style: TextStyle(
-                       color: Colors.white,
-                       fontSize: 28,
-                       fontWeight: FontWeight.bold,
-                     ),
-                   ),
-                   SizedBox(height: 16),
-                   Text(
-                     'To get started with the nodes system, please open a node file from your project.',
-                     style: TextStyle(
-                       color: Colors.white70,
-                       fontSize: 16,
-                     ),
-                     textAlign: TextAlign.center,
-                   ),
-                   SizedBox(height: 32),
-                   Row(
-                     mainAxisAlignment: MainAxisAlignment.center,
-                     children: [
-                       ElevatedButton.icon(
-                         onPressed: () {
-                           // TODO: Implement file picker for node files
-                           ScaffoldMessenger.of(context).showSnackBar(
-                             SnackBar(
-                               content: Text('File picker not yet implemented'),
-                               backgroundColor: Colors.orange,
-                             ),
-                           );
-                         },
-                         icon: Icon(Icons.folder_open),
-                         label: Text('Open Node File'),
-                         style: ElevatedButton.styleFrom(
-                           backgroundColor: Colors.green,
-                           foregroundColor: Colors.white,
-                           padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                         ),
-                       ),
-                       SizedBox(width: 16),
-                       OutlinedButton.icon(
-                         onPressed: () {
-                           // TODO: Implement new node file creation
-                           ScaffoldMessenger.of(context).showSnackBar(
-                             SnackBar(
-                               content: Text('Creating new node file...'),
-                               backgroundColor: Colors.blue,
-                             ),
-                           );
-                         },
-                         icon: Icon(Icons.add),
-                         label: Text('Create New'),
-                         style: OutlinedButton.styleFrom(
-                           foregroundColor: Colors.white,
-                           side: BorderSide(color: Colors.white24),
-                           padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                         ),
-                       ),
-                     ],
-                   ),
-                 ],
-               ),
-             ),
-           ),
-         ],
-       ),
-     );
-       }
-
-    // Build interaction-specific node editor
-    Widget _buildInteractionNodeEditor(Map<String, dynamic> interaction) {
-      return Container(
-        color: Color(0xFF151515),
-        child: Column(
-          children: [
-            // Header
-            Container(
-              padding: EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Color(0xFF2D2D2D),
-                border: Border(bottom: BorderSide(color: Colors.white24)),
-              ),
-              child: Row(
-                children: [
-                  Icon(Icons.account_tree, color: Colors.green, size: 24),
-                  SizedBox(width: 12),
-                  Text(
-                    'Node Editor - ${interaction['nodeName'] ?? 'Unnamed Node'}',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Spacer(),
-                  // Back button
-                  IconButton(
-                    icon: Icon(Icons.arrow_back, color: Colors.white),
-                    onPressed: () {
-                      setState(() {
-                        _currentEditingInteraction = null;
-                      });
-                    },
-                  ),
-                  // Close button
-                  IconButton(
-                    icon: Icon(Icons.close, color: Colors.white),
-                    onPressed: () {
-                      setState(() {
-                        _showNodesPage = false;
-                        _currentEditingInteraction = null;
-                      });
-                    },
-                  ),
-                ],
-              ),
-            ),
-            // Node editor area
-            Expanded(
-              child: Container(
-                padding: EdgeInsets.all(16),
-                child: Row(
-                  children: [
-                    // Left panel - Node library
-                    Container(
-                      width: 200,
-                      decoration: BoxDecoration(
-                        color: Color(0xFF232323),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Padding(
-                            padding: EdgeInsets.all(12),
-                            child: Text(
-                              'Node Library',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                          Expanded(
-                            child: ListView(
-                              children: [
-                                _buildNodeLibraryCategory('Input', [
-                                  {'name': 'Mouse Input', 'icon': Icons.mouse},
-                                  {'name': 'Keyboard Input', 'icon': Icons.keyboard},
-                                  {'name': 'Time', 'icon': Icons.access_time},
-                                  {'name': 'Variable', 'icon': Icons.data_usage},
-                                ]),
-                                _buildNodeLibraryCategory('Math', [
-                                  {'name': 'Add', 'icon': Icons.add},
-                                  {'name': 'Multiply', 'icon': Icons.close},
-                                  {'name': 'Compare', 'icon': Icons.compare_arrows},
-                                  {'name': 'Random', 'icon': Icons.shuffle},
-                                ]),
-                                _buildNodeLibraryCategory('Logic', [
-                                  {'name': 'If/Else', 'icon': Icons.call_split},
-                                  {'name': 'And', 'icon': Icons.add_circle},
-                                  {'name': 'Or', 'icon': Icons.radio_button_unchecked},
-                                  {'name': 'Not', 'icon': Icons.not_interested},
-                                ]),
-                                _buildNodeLibraryCategory('Animation', [
-                                  {'name': 'Move', 'icon': Icons.open_with},
-                                  {'name': 'Rotate', 'icon': Icons.rotate_right},
-                                  {'name': 'Scale', 'icon': Icons.zoom_out_map},
-                                  {'name': 'Fade', 'icon': Icons.opacity},
-                                ]),
-                                _buildNodeLibraryCategory('Effects', [
-                                  {'name': 'Color Change', 'icon': Icons.palette},
-                                  {'name': 'Shadow', 'icon': Icons.blur_on},
-                                  {'name': 'Glow', 'icon': Icons.brightness_high},
-                                  {'name': 'Filter', 'icon': Icons.filter_vintage},
-                                ]),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    SizedBox(width: 16),
-                    // Main node canvas
-                    Expanded(
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Color(0xFF151515),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: Colors.white12),
-                        ),
-                        child: Stack(
-                          children: [
-                            // Grid background
-                            CustomPaint(
-                              painter: NodeGridPainter(),
-                              size: Size.infinite,
-                            ),
-                            // Node canvas content
-                            if (interaction['nodeData'] == null || 
-                                interaction['nodeData']['nodes'] == null ||
-                                interaction['nodeData']['nodes'].isEmpty)
-                              Center(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(
-                                      Icons.account_tree,
-                                      color: Colors.green.withOpacity(0.5),
-                                      size: 64,
-                                    ),
-                                    SizedBox(height: 16),
-                                    Text(
-                                      'Node Canvas',
-                                      style: TextStyle(
-                                        color: Colors.white24,
-                                        fontSize: 24,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    SizedBox(height: 8),
-                                    Text(
-                                      'Drag nodes from the library to create logic\nfor "${interaction['nodeName'] ?? 'this interaction'}"',
-                                      style: TextStyle(
-                                        color: Colors.white24,
-                                        fontSize: 14,
-                                      ),
-                                      textAlign: TextAlign.center,
-                                    ),
-                                  ],
-                                ),
-                              )
-                            else
-                              // Show existing nodes
-                              _buildExistingNodes(interaction['nodeData']),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            // Footer with controls
-            Container(
-              padding: EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Color(0xFF2D2D2D),
-                border: Border(top: BorderSide(color: Colors.white24)),
-              ),
-              child: Row(
-                children: [
-                  Text(
-                    'Trigger: ${_getNameForType(interaction['type'])}',
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: 14,
-                    ),
-                  ),
-                  Spacer(),
-                  OutlinedButton.icon(
-                    onPressed: () {
-                      setState(() {
-                        interaction['nodeData'] = {
-                          'nodes': [],
-                          'connections': [],
-                          'created': DateTime.now().toIso8601String(),
-                        };
-                      });
-                    },
-                    icon: Icon(Icons.clear_all),
-                    label: Text('Clear All'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.white,
-                      side: BorderSide(color: Colors.white24),
-                    ),
-                  ),
-                  SizedBox(width: 12),
-                  ElevatedButton.icon(
-                    onPressed: () {
-                      setState(() {
-                        _showNodesPage = false;
-                        _currentEditingInteraction = null;
-                      });
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Node setup saved for "${interaction['nodeName']}"'),
-                          backgroundColor: Colors.green,
-                        ),
-                      );
-                    },
-                    icon: Icon(Icons.save),
-                    label: Text('Save & Close'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                      foregroundColor: Colors.white,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      );
+  // Build nodes page overlay
+  Widget _buildNodesPage() {
+    // If editing a specific interaction, show the node editor
+    if (_currentEditingInteraction != null) {
+      return _buildInteractionNodeEditor(_currentEditingInteraction!);
     }
 
-    // Build existing nodes visualization
-    Widget _buildExistingNodes(Map<String, dynamic> nodeData) {
-      List nodes = nodeData['nodes'] ?? [];
-      return Stack(
-        children: nodes.asMap().entries.map((entry) {
-          int index = entry.key;
-          Map node = entry.value;
-          return Positioned(
-            left: (node['x'] ?? (100.0 + index * 150)).toDouble(),
-            top: (node['y'] ?? (100.0 + index * 80)).toDouble(),
-            child: Container(
-              width: 120,
-              height: 60,
-              decoration: BoxDecoration(
-                color: Color(0xFF2D2D2D),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.green),
-              ),
-              padding: EdgeInsets.all(8),
+    return Container(
+      color: Color(0xFF151515),
+      child: Column(
+        children: [
+          // Header
+          Container(
+            padding: EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Color(0xFF2D2D2D),
+              border: Border(bottom: BorderSide(color: Colors.white24)),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.account_tree, color: Colors.green, size: 24),
+                SizedBox(width: 12),
+                Text(
+                  'Nodes Editor',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Spacer(),
+                IconButton(
+                  icon: Icon(Icons.close, color: Colors.white),
+                  onPressed: () {
+                    setState(() {
+                      _showNodesPage = false;
+                      _currentEditingInteraction = null;
+                    });
+                  },
+                ),
+              ],
+            ),
+          ),
+          // Content
+          Expanded(
+            child: Padding(
+              padding: EdgeInsets.all(40),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(
-                    node['icon'] ?? Icons.account_tree,
+                    Icons.account_tree,
                     color: Colors.green,
-                    size: 16,
+                    size: 120,
                   ),
-                  SizedBox(height: 4),
+                  SizedBox(height: 32),
                   Text(
-                    node['name'] ?? 'Node',
+                    'Please open a node file',
                     style: TextStyle(
                       color: Colors.white,
-                      fontSize: 10,
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(height: 16),
+                  Text(
+                    'To get started with the nodes system, please open a node file from your project.',
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: 16,
                     ),
                     textAlign: TextAlign.center,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                  ),
+                  SizedBox(height: 32),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      ElevatedButton.icon(
+                        onPressed: () {
+                          // TODO: Implement file picker for node files
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('File picker not yet implemented'),
+                              backgroundColor: Colors.orange,
+                            ),
+                          );
+                        },
+                        icon: Icon(Icons.folder_open),
+                        label: Text('Open Node File'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green,
+                          foregroundColor: Colors.white,
+                          padding: EdgeInsets.symmetric(
+                              horizontal: 24, vertical: 12),
+                        ),
+                      ),
+                      SizedBox(width: 16),
+                      OutlinedButton.icon(
+                        onPressed: () {
+                          // TODO: Implement new node file creation
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Creating new node file...'),
+                              backgroundColor: Colors.blue,
+                            ),
+                          );
+                        },
+                        icon: Icon(Icons.add),
+                        label: Text('Create New'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Colors.white,
+                          side: BorderSide(color: Colors.white24),
+                          padding: EdgeInsets.symmetric(
+                              horizontal: 24, vertical: 12),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
             ),
-          );
-        }).toList(),
-      );
-    }
+          ),
+        ],
+      ),
+    );
+  }
 
-    // Build node library category
-  Widget _buildNodeLibraryCategory(String title, List<Map<String, dynamic>> nodes) {
+  // Build interaction-specific node editor
+  Widget _buildInteractionNodeEditor(Map<String, dynamic> interaction) {
+    return Container(
+      color: Color(0xFF151515),
+      child: Column(
+        children: [
+          // Header
+          Container(
+            padding: EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Color(0xFF2D2D2D),
+              border: Border(bottom: BorderSide(color: Colors.white24)),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.account_tree, color: Colors.green, size: 24),
+                SizedBox(width: 12),
+                Text(
+                  'Node Editor - ${interaction['nodeName'] ?? 'Unnamed Node'}',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Spacer(),
+                // Back button
+                IconButton(
+                  icon: Icon(Icons.arrow_back, color: Colors.white),
+                  onPressed: () {
+                    setState(() {
+                      _currentEditingInteraction = null;
+                    });
+                  },
+                ),
+                // Close button
+                IconButton(
+                  icon: Icon(Icons.close, color: Colors.white),
+                  onPressed: () {
+                    setState(() {
+                      _showNodesPage = false;
+                      _currentEditingInteraction = null;
+                    });
+                  },
+                ),
+              ],
+            ),
+          ),
+          // Node editor area
+          Expanded(
+            child: Container(
+              padding: EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  // Left panel - Node library
+                  Container(
+                    width: 200,
+                    decoration: BoxDecoration(
+                      color: Color(0xFF232323),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: EdgeInsets.all(12),
+                          child: Text(
+                            'Node Library',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: ListView(
+                            children: [
+                              _buildNodeLibraryCategory('Input', [
+                                {'name': 'Mouse Input', 'icon': Icons.mouse},
+                                {
+                                  'name': 'Keyboard Input',
+                                  'icon': Icons.keyboard
+                                },
+                                {'name': 'Time', 'icon': Icons.access_time},
+                                {'name': 'Variable', 'icon': Icons.data_usage},
+                              ]),
+                              _buildNodeLibraryCategory('Math', [
+                                {'name': 'Add', 'icon': Icons.add},
+                                {'name': 'Multiply', 'icon': Icons.close},
+                                {
+                                  'name': 'Compare',
+                                  'icon': Icons.compare_arrows
+                                },
+                                {'name': 'Random', 'icon': Icons.shuffle},
+                              ]),
+                              _buildNodeLibraryCategory('Logic', [
+                                {'name': 'If/Else', 'icon': Icons.call_split},
+                                {'name': 'And', 'icon': Icons.add_circle},
+                                {
+                                  'name': 'Or',
+                                  'icon': Icons.radio_button_unchecked
+                                },
+                                {'name': 'Not', 'icon': Icons.not_interested},
+                              ]),
+                              _buildNodeLibraryCategory('Animation', [
+                                {'name': 'Move', 'icon': Icons.open_with},
+                                {'name': 'Rotate', 'icon': Icons.rotate_right},
+                                {'name': 'Scale', 'icon': Icons.zoom_out_map},
+                                {'name': 'Fade', 'icon': Icons.opacity},
+                              ]),
+                              _buildNodeLibraryCategory('Effects', [
+                                {'name': 'Color Change', 'icon': Icons.palette},
+                                {'name': 'Shadow', 'icon': Icons.blur_on},
+                                {'name': 'Glow', 'icon': Icons.brightness_high},
+                                {
+                                  'name': 'Filter',
+                                  'icon': Icons.filter_vintage
+                                },
+                              ]),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(width: 16),
+                  // Main node canvas
+                  Expanded(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Color(0xFF151515),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.white12),
+                      ),
+                      child: Stack(
+                        children: [
+                          // Grid background
+                          CustomPaint(
+                            painter: NodeGridPainter(),
+                            size: Size.infinite,
+                          ),
+                          // Node canvas content
+                          if (interaction['nodeData'] == null ||
+                              interaction['nodeData']['nodes'] == null ||
+                              interaction['nodeData']['nodes'].isEmpty)
+                            Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.account_tree,
+                                    color: Colors.green.withOpacity(0.5),
+                                    size: 64,
+                                  ),
+                                  SizedBox(height: 16),
+                                  Text(
+                                    'Node Canvas',
+                                    style: TextStyle(
+                                      color: Colors.white24,
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  SizedBox(height: 8),
+                                  Text(
+                                    'Drag nodes from the library to create logic\nfor "${interaction['nodeName'] ?? 'this interaction'}"',
+                                    style: TextStyle(
+                                      color: Colors.white24,
+                                      fontSize: 14,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ],
+                              ),
+                            )
+                          else
+                            // Show existing nodes
+                            _buildExistingNodes(interaction['nodeData']),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          // Footer with controls
+          Container(
+            padding: EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Color(0xFF2D2D2D),
+              border: Border(top: BorderSide(color: Colors.white24)),
+            ),
+            child: Row(
+              children: [
+                Text(
+                  'Trigger: ${_getNameForType(interaction['type'])}',
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: 14,
+                  ),
+                ),
+                Spacer(),
+                OutlinedButton.icon(
+                  onPressed: () {
+                    setState(() {
+                      interaction['nodeData'] = {
+                        'nodes': [],
+                        'connections': [],
+                        'created': DateTime.now().toIso8601String(),
+                      };
+                    });
+                  },
+                  icon: Icon(Icons.clear_all),
+                  label: Text('Clear All'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.white,
+                    side: BorderSide(color: Colors.white24),
+                  ),
+                ),
+                SizedBox(width: 12),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    setState(() {
+                      _showNodesPage = false;
+                      _currentEditingInteraction = null;
+                    });
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                            'Node setup saved for "${interaction['nodeName']}"'),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                  },
+                  icon: Icon(Icons.save),
+                  label: Text('Save & Close'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Build existing nodes visualization
+  Widget _buildExistingNodes(Map<String, dynamic> nodeData) {
+    List nodes = nodeData['nodes'] ?? [];
+    return Stack(
+      children: nodes.asMap().entries.map((entry) {
+        int index = entry.key;
+        Map node = entry.value;
+        return Positioned(
+          left: (node['x'] ?? (100.0 + index * 150)).toDouble(),
+          top: (node['y'] ?? (100.0 + index * 80)).toDouble(),
+          child: Container(
+            width: 120,
+            height: 60,
+            decoration: BoxDecoration(
+              color: Color(0xFF2D2D2D),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.green),
+            ),
+            padding: EdgeInsets.all(8),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  node['icon'] ?? Icons.account_tree,
+                  color: Colors.green,
+                  size: 16,
+                ),
+                SizedBox(height: 4),
+                Text(
+                  node['name'] ?? 'Node',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 10,
+                  ),
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  // Build node library category
+  Widget _buildNodeLibraryCategory(
+      String title, List<Map<String, dynamic>> nodes) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1018,63 +1057,68 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
             ),
           ),
         ),
-        ...nodes.map((node) => Container(
-          margin: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-          child: ListTile(
-            dense: true,
-            leading: Icon(
-              node['icon'] as IconData,
-              color: Colors.white54,
-              size: 18,
-            ),
-            title: Text(
-              node['name'] as String,
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 12,
-              ),
-            ),
-            onTap: () {
-              // Add node to current interaction if editing one
-              if (_currentEditingInteraction != null) {
-                setState(() {
-                  if (_currentEditingInteraction!['nodeData'] == null) {
-                    _currentEditingInteraction!['nodeData'] = {
-                      'nodes': [],
-                      'connections': [],
-                      'created': DateTime.now().toIso8601String(),
-                    };
-                  }
-                  List nodes = _currentEditingInteraction!['nodeData']['nodes'];
-                  nodes.add({
-                    'id': 'node_${DateTime.now().millisecondsSinceEpoch}',
-                    'name': node['name'],
-                    'type': node['name'].toLowerCase().replaceAll(' ', '_'),
-                    'icon': node['icon'],
-                    'x': 100.0 + nodes.length * 150,
-                    'y': 100.0 + (nodes.length % 3) * 100,
-                    'inputs': [],
-                    'outputs': [],
-                  });
-                });
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('${node['name']} node added'),
-                    duration: Duration(milliseconds: 1000),
-                    backgroundColor: Colors.green,
+        ...nodes
+            .map((node) => Container(
+                  margin: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  child: ListTile(
+                    dense: true,
+                    leading: Icon(
+                      node['icon'] as IconData,
+                      color: Colors.white54,
+                      size: 18,
+                    ),
+                    title: Text(
+                      node['name'] as String,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                      ),
+                    ),
+                    onTap: () {
+                      // Add node to current interaction if editing one
+                      if (_currentEditingInteraction != null) {
+                        setState(() {
+                          if (_currentEditingInteraction!['nodeData'] == null) {
+                            _currentEditingInteraction!['nodeData'] = {
+                              'nodes': [],
+                              'connections': [],
+                              'created': DateTime.now().toIso8601String(),
+                            };
+                          }
+                          List nodes =
+                              _currentEditingInteraction!['nodeData']['nodes'];
+                          nodes.add({
+                            'id':
+                                'node_${DateTime.now().millisecondsSinceEpoch}',
+                            'name': node['name'],
+                            'type':
+                                node['name'].toLowerCase().replaceAll(' ', '_'),
+                            'icon': node['icon'],
+                            'x': 100.0 + nodes.length * 150,
+                            'y': 100.0 + (nodes.length % 3) * 100,
+                            'inputs': [],
+                            'outputs': [],
+                          });
+                        });
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('${node['name']} node added'),
+                            duration: Duration(milliseconds: 1000),
+                            backgroundColor: Colors.green,
+                          ),
+                        );
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('${node['name']} node selected'),
+                            duration: Duration(milliseconds: 1000),
+                          ),
+                        );
+                      }
+                    },
                   ),
-                );
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('${node['name']} node selected'),
-                    duration: Duration(milliseconds: 1000),
-                  ),
-                );
-              }
-            },
-          ),
-        )).toList(),
+                ))
+            .toList(),
         SizedBox(height: 8),
       ],
     );
@@ -1083,10 +1127,10 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
   // Rename animation dialog
   void _renameAnimation(int animationIndex) {
     if (animationIndex < 0 || animationIndex >= _animations.length) return;
-    
+
     final currentName = _animations[animationIndex]['name'] ?? 'Animation';
     final controller = TextEditingController(text: currentName);
-    
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -1127,7 +1171,8 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text('Animation renamed to "${controller.text.trim()}"'),
+                    content: Text(
+                        'Animation renamed to "${controller.text.trim()}"'),
                     backgroundColor: Colors.green,
                   ),
                 );
@@ -1139,13 +1184,13 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
       ),
     );
   }
-  
+
   // Delete animation with confirmation
   void _deleteAnimationWithConfirmation(int animationIndex) {
     if (animationIndex < 0 || animationIndex >= _animations.length) return;
-    
+
     final animationName = _animations[animationIndex]['name'] ?? 'Animation';
-    
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -1168,7 +1213,8 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
             SizedBox(height: 8),
             Text(
               'This action cannot be undone.',
-              style: TextStyle(color: Colors.red.withOpacity(0.8), fontSize: 12),
+              style:
+                  TextStyle(color: Colors.red.withOpacity(0.8), fontSize: 12),
             ),
           ],
         ),
@@ -1184,7 +1230,8 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                 // Reset selected animation if it was deleted
                 if (_selectedAnimationIndex == animationIndex) {
                   _selectedAnimationIndex = null;
-                } else if (_selectedAnimationIndex != null && _selectedAnimationIndex! > animationIndex) {
+                } else if (_selectedAnimationIndex != null &&
+                    _selectedAnimationIndex! > animationIndex) {
                   _selectedAnimationIndex = _selectedAnimationIndex! - 1;
                 }
               });
@@ -1202,14 +1249,14 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
       ),
     );
   }
-  
+
   // Rename element dialog
   void _renameElement(int elementIndex) {
     if (elementIndex < 0 || elementIndex >= _screenComponents.length) return;
-    
+
     final currentName = _screenComponents[elementIndex]['name'] ?? 'Element';
     final controller = TextEditingController(text: currentName);
-    
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -1245,12 +1292,14 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
             onPressed: () {
               if (controller.text.trim().isNotEmpty) {
                 setState(() {
-                  _screenComponents[elementIndex]['name'] = controller.text.trim();
+                  _screenComponents[elementIndex]['name'] =
+                      controller.text.trim();
                 });
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text('Element renamed to "${controller.text.trim()}"'),
+                    content:
+                        Text('Element renamed to "${controller.text.trim()}"'),
                     backgroundColor: Colors.green,
                   ),
                 );
@@ -1262,14 +1311,14 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
       ),
     );
   }
-  
+
   // Delete element with confirmation
   void _deleteElementWithConfirmation(int elementIndex) {
     if (elementIndex < 0 || elementIndex >= _screenComponents.length) return;
-    
+
     final elementName = _screenComponents[elementIndex]['name'] ?? 'Element';
     final elementId = _screenComponents[elementIndex]['id'];
-    
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -1292,12 +1341,14 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
             SizedBox(height: 8),
             Text(
               'This will also remove it from all animations.',
-              style: TextStyle(color: Colors.orange.withOpacity(0.8), fontSize: 12),
+              style: TextStyle(
+                  color: Colors.orange.withOpacity(0.8), fontSize: 12),
             ),
             SizedBox(height: 4),
             Text(
               'This action cannot be undone.',
-              style: TextStyle(color: Colors.red.withOpacity(0.8), fontSize: 12),
+              style:
+                  TextStyle(color: Colors.red.withOpacity(0.8), fontSize: 12),
             ),
           ],
         ),
@@ -1311,13 +1362,15 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
               setState(() {
                 // Remove element from screen components
                 _screenComponents.removeAt(elementIndex);
-                
+
                 // Remove element from all animations
                 for (final animation in _animations) {
-                  final frameData = animation['frame_data'] as Map<String, dynamic>?;
+                  final frameData =
+                      animation['frame_data'] as Map<String, dynamic>?;
                   if (frameData != null) {
                     for (final frameKey in frameData.keys.toList()) {
-                      final frame = frameData[frameKey] as Map<String, dynamic>?;
+                      final frame =
+                          frameData[frameKey] as Map<String, dynamic>?;
                       if (frame != null) {
                         frame.remove(elementId);
                       }
@@ -1339,7 +1392,7 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
       ),
     );
   }
-  
+
   @override
   void initState() {
     super.initState();
@@ -1375,7 +1428,7 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
           {
             'id': 'click_rotate',
             'name': 'Click Rotate',
-            'type': 'interaction', 
+            'type': 'interaction',
             'trigger': 'onClick',
             'action': 'rotate',
             'value': 45,
@@ -1598,7 +1651,7 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
         body: _buildNodesPage(),
       );
     }
-    
+
     return Scaffold(
       backgroundColor: const Color(0xFF151515),
       body: Shortcuts(
@@ -1660,7 +1713,8 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                                                 final component =
                                                     _screenComponents[index];
                                                 return GestureDetector(
-                                                  onSecondaryTapDown: (details) {
+                                                  onSecondaryTapDown:
+                                                      (details) {
                                                     _showElementContextMenu(
                                                       context,
                                                       details.globalPosition,
@@ -1669,9 +1723,14 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                                                   },
                                                   onDoubleTap: () {
                                                     // Check if element has node actions
-                                                    if (component['nodeActions'] != null && 
-                                                        component['nodeActions'].length > 0) {
-                                                      _openNodesSystem(component);
+                                                    if (component[
+                                                                'nodeActions'] !=
+                                                            null &&
+                                                        component['nodeActions']
+                                                                .length >
+                                                            0) {
+                                                      _openNodesSystem(
+                                                          component);
                                                     }
                                                   },
                                                   child: ListTile(
@@ -1679,29 +1738,53 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                                                         component['name'] ??
                                                             'Element',
                                                         style: TextStyle(
-                                                            color: component['selected'] == true 
-                                                                ? Colors.white 
-                                                                : Colors.white70,
-                                                            fontWeight: component['selected'] == true 
-                                                                ? FontWeight.w600 
-                                                                : FontWeight.normal)),
-                                                                                                         leading: Icon(Icons.widgets,
-                                                         color: component['selected'] == true 
-                                                             ? Colors.blue 
-                                                             : Colors.white54),
-                                                     trailing: Row(
-                                                       mainAxisSize: MainAxisSize.min,
-                                                       children: [
-                                                         if (component['nodeActions'] != null && 
-                                                             component['nodeActions'].length > 0)
-                                                           Icon(Icons.account_tree, 
-                                                               color: Colors.green, size: 14),
-                                                         Icon(Icons.more_vert, 
-                                                             color: Colors.white24, size: 16),
-                                                       ],
-                                                     ),
-                                                     selected: component['selected'] == true,
-                                                    selectedTileColor: Colors.blue.withOpacity(0.2),
+                                                            color: component[
+                                                                        'selected'] ==
+                                                                    true
+                                                                ? Colors.white
+                                                                : Colors
+                                                                    .white70,
+                                                            fontWeight: component[
+                                                                        'selected'] ==
+                                                                    true
+                                                                ? FontWeight
+                                                                    .w600
+                                                                : FontWeight
+                                                                    .normal)),
+                                                    leading: Icon(Icons.widgets,
+                                                        color: component[
+                                                                    'selected'] ==
+                                                                true
+                                                            ? Colors.blue
+                                                            : Colors.white54),
+                                                    trailing: Row(
+                                                      mainAxisSize:
+                                                          MainAxisSize.min,
+                                                      children: [
+                                                        if (component[
+                                                                    'nodeActions'] !=
+                                                                null &&
+                                                            component['nodeActions']
+                                                                    .length >
+                                                                0)
+                                                          Icon(
+                                                              Icons
+                                                                  .account_tree,
+                                                              color:
+                                                                  Colors.green,
+                                                              size: 14),
+                                                        Icon(Icons.more_vert,
+                                                            color:
+                                                                Colors.white24,
+                                                            size: 16),
+                                                      ],
+                                                    ),
+                                                    selected:
+                                                        component['selected'] ==
+                                                            true,
+                                                    selectedTileColor: Colors
+                                                        .blue
+                                                        .withOpacity(0.2),
                                                     onTap: () {
                                                       setState(() {
                                                         for (var c
@@ -1710,8 +1793,10 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                                                         }
                                                         component['selected'] =
                                                             true;
-                                                        _isScreenSelected = true;
-                                                        _selectedRightTab = 'Animation';
+                                                        _isScreenSelected =
+                                                            true;
+                                                        _selectedRightTab =
+                                                            'Animation';
                                                       });
                                                     },
                                                   ),
@@ -1850,7 +1935,8 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                                               itemBuilder: (context, index) {
                                                 final anim = _animations[index];
                                                 return GestureDetector(
-                                                  onSecondaryTapDown: (details) {
+                                                  onSecondaryTapDown:
+                                                      (details) {
                                                     _showAnimationContextMenu(
                                                       context,
                                                       details.globalPosition,
@@ -1862,13 +1948,20 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                                                         anim['name'] ??
                                                             'Animation',
                                                         style: TextStyle(
-                                                            color: Colors.white)),
+                                                            color:
+                                                                Colors.white)),
                                                     leading: Icon(Icons.movie,
                                                         color: Colors.white54),
-                                                    trailing: Icon(Icons.more_vert, 
-                                                        color: Colors.white24, size: 16),
-                                                    selected: _selectedAnimationIndex == index,
-                                                    selectedTileColor: Colors.blue.withOpacity(0.2),
+                                                    trailing: Icon(
+                                                        Icons.more_vert,
+                                                        color: Colors.white24,
+                                                        size: 16),
+                                                    selected:
+                                                        _selectedAnimationIndex ==
+                                                            index,
+                                                    selectedTileColor: Colors
+                                                        .blue
+                                                        .withOpacity(0.2),
                                                     onTap: () {
                                                       setState(() {
                                                         _selectedAnimationIndex =
@@ -1883,7 +1976,6 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                                         ],
                                       ),
                                     ),
-
                                   ],
                                 ),
                               ),
@@ -1970,7 +2062,8 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                                             scrollDirection: Axis.horizontal,
                                             child: Row(
                                               children: [
-                                                _buildSettingsTab('Properties', true)
+                                                _buildSettingsTab(
+                                                    'Properties', true)
                                               ],
                                             ),
                                           ),
@@ -1984,7 +2077,8 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                                     // Scrollable content section
                                     Expanded(
                                       child: SingleChildScrollView(
-                                        child: _buildAnimationRightSidebarContent(),
+                                        child:
+                                            _buildAnimationRightSidebarContent(),
                                       ),
                                     ),
                                   ],
@@ -2856,7 +2950,9 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
               children: [
                 Icon(
                   getIconForType(interaction['type']),
-                  color: interaction['type'] == 'nodes_action' ? Colors.green : Colors.white70,
+                  color: interaction['type'] == 'nodes_action'
+                      ? Colors.green
+                      : Colors.white70,
                   size: 18,
                 ),
                 const SizedBox(width: 8),
@@ -3286,7 +3382,7 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
         // Show nodes action setup for nodes_action type
         if (interaction['type'] == 'nodes_action') ...[
           const SizedBox(height: 20),
-          
+
           // Node Name field
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -3314,7 +3410,8 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
               borderRadius: BorderRadius.circular(6),
             ),
             child: TextField(
-              controller: TextEditingController(text: interaction['nodeName'] ?? "New Node Setup"),
+              controller: TextEditingController(
+                  text: interaction['nodeName'] ?? "New Node Setup"),
               style: TextStyle(color: Colors.white, fontSize: 14),
               decoration: InputDecoration(
                 contentPadding: EdgeInsets.symmetric(
@@ -3340,9 +3437,9 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
               },
             ),
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // Edit Nodes button
           Container(
             margin: const EdgeInsets.symmetric(horizontal: 16),
@@ -3362,9 +3459,10 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
               ),
             ),
           ),
-          
+
           // Show node count if nodes exist
-          if (interaction['nodeData'] != null && interaction['nodeData']['nodes'] != null) ...[
+          if (interaction['nodeData'] != null &&
+              interaction['nodeData']['nodes'] != null) ...[
             const SizedBox(height: 8),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -5047,10 +5145,12 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
   // Method to build animation right sidebar content
   Widget _buildAnimationRightSidebarContent() {
     // Check if an animation is selected
-    if (_selectedAnimationIndex != null && _selectedAnimationIndex! < _animations.length) {
-      return _buildSelectedAnimationSettings(_animations[_selectedAnimationIndex!]);
+    if (_selectedAnimationIndex != null &&
+        _selectedAnimationIndex! < _animations.length) {
+      return _buildSelectedAnimationSettings(
+          _animations[_selectedAnimationIndex!]);
     }
-    
+
     // Find the selected component if any
     Map<String, dynamic>? selectedComponent;
     for (var component in _screenComponents) {
@@ -5133,39 +5233,42 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
 
   // Animation playback methods
   void _playAnimation() {
-    if (_selectedAnimationIndex == null || _selectedAnimationIndex! >= _animations.length) {
+    if (_selectedAnimationIndex == null ||
+        _selectedAnimationIndex! >= _animations.length) {
       return;
     }
-    
+
     final animation = _animations[_selectedAnimationIndex!];
     final keyframes = List<int>.from(animation['keyframes'] ?? []);
-    
+
     if (keyframes.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('No keyframes found in animation. Please add keyframes before playing.'),
+          content: Text(
+              'No keyframes found in animation. Please add keyframes before playing.'),
           duration: const Duration(seconds: 3),
           backgroundColor: Colors.orange,
         ),
       );
       return;
     }
-    
+
     // Sort keyframes to ensure proper order
     keyframes.sort();
-    
+
     setState(() {
       _isPlaying = true;
       _currentPlaybackFrame = 0;
     });
-    
+
     // Start animation from frame 0 to the last keyframe
     final maxFrame = keyframes.last;
-    
+
     // Each frame represents 1ms, but we use 16ms (60fps) for smooth animation
     // Speed can be adjusted by the speed multiplier
     final frameInterval = (16 / _animationSpeed).round().clamp(1, 1000);
-    _animationTimer = Timer.periodic(Duration(milliseconds: frameInterval), (timer) {
+    _animationTimer =
+        Timer.periodic(Duration(milliseconds: frameInterval), (timer) {
       if (!_isPlaying || _currentPlaybackFrame > maxFrame) {
         timer.cancel();
         _animationTimer = null;
@@ -5175,52 +5278,54 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
         });
         return;
       }
-      
-              setState(() {
-          _selectedFrame = _currentPlaybackFrame;
-          // Apply interpolated data for current frame
-          try {
-            _applyInterpolatedFrameData(_currentPlaybackFrame, keyframes);
-          } catch (e) {
-            print('Error applying interpolated frame data: $e');
-            // Continue animation even if one frame fails
-          }
-        });
-      
+
+      setState(() {
+        _selectedFrame = _currentPlaybackFrame;
+        // Apply interpolated data for current frame
+        try {
+          _applyInterpolatedFrameData(_currentPlaybackFrame, keyframes);
+        } catch (e) {
+          print('Error applying interpolated frame data: $e');
+          // Continue animation even if one frame fails
+        }
+      });
+
       _currentPlaybackFrame++;
     });
   }
-  
+
   // Apply saved keyframe data to elements
   void _applyKeyframeData(int frame) {
-    if (_selectedAnimationIndex == null || _selectedAnimationIndex! >= _animations.length) {
+    if (_selectedAnimationIndex == null ||
+        _selectedAnimationIndex! >= _animations.length) {
       return;
     }
-    
+
     final animation = _animations[_selectedAnimationIndex!];
     final frameData = animation['frame_data'];
-    
+
     if (frameData == null) {
       print('No frame data found for animation');
       return;
     }
-    
+
     final currentFrameData = frameData['frame_$frame'] as Map<String, dynamic>?;
     if (currentFrameData == null) {
       print('No data found for frame $frame');
       return;
     }
-    
+
     print('Applying keyframe data for frame $frame');
-    
+
     // Apply data to elements using IDs
     currentFrameData.forEach((elementId, elementData) {
       if (elementId is String && elementData is Map<String, dynamic>) {
         // Find the component with matching ID
-        final componentIndex = _screenComponents.indexWhere((c) => c['id'] == elementId);
+        final componentIndex =
+            _screenComponents.indexWhere((c) => c['id'] == elementId);
         if (componentIndex != -1) {
           final component = _screenComponents[componentIndex];
-          
+
           // Update element properties (only if not null)
           if (elementData['position'] != null) {
             component['position'] = elementData['position'];
@@ -5234,32 +5339,34 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
           if (elementData['opacity'] != null) {
             component['opacity'] = elementData['opacity'];
           }
-          
-          print('Applied data to ${component['name']} (ID: $elementId): ${elementData}');
+
+          print(
+              'Applied data to ${component['name']} (ID: $elementId): ${elementData}');
         } else {
           print('Warning: Could not find component with ID: $elementId');
         }
       }
     });
   }
-  
+
   // Apply interpolated frame data between keyframes
   void _applyInterpolatedFrameData(int currentFrame, List<int> keyframes) {
-    if (_selectedAnimationIndex == null || _selectedAnimationIndex! >= _animations.length) {
+    if (_selectedAnimationIndex == null ||
+        _selectedAnimationIndex! >= _animations.length) {
       return;
     }
-    
+
     final animation = _animations[_selectedAnimationIndex!];
     final frameData = animation['frame_data'];
-    
+
     if (frameData == null) {
       return;
     }
-    
+
     // Find the two keyframes to interpolate between
     int? prevKeyframe;
     int? nextKeyframe;
-    
+
     // Find previous and next keyframes
     for (int i = 0; i < keyframes.length; i++) {
       if (keyframes[i] <= currentFrame) {
@@ -5270,7 +5377,7 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
         break;
       }
     }
-    
+
     // Handle edge cases
     if (prevKeyframe == null && nextKeyframe != null) {
       // Before first keyframe - hold the first keyframe's values
@@ -5284,27 +5391,29 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
       // No keyframes at all
       return;
     }
-    
+
     // If we're exactly on a keyframe, apply its data directly
     if (currentFrame == prevKeyframe || currentFrame == nextKeyframe) {
       _applyKeyframeData(currentFrame);
       return;
     }
-    
+
     // Get data for both keyframes
-    final prevFrameData = frameData['frame_$prevKeyframe'] as Map<String, dynamic>?;
-    final nextFrameData = frameData['frame_$nextKeyframe'] as Map<String, dynamic>?;
-    
+    final prevFrameData =
+        frameData['frame_$prevKeyframe'] as Map<String, dynamic>?;
+    final nextFrameData =
+        frameData['frame_$nextKeyframe'] as Map<String, dynamic>?;
+
     if (prevFrameData == null || nextFrameData == null) {
       return;
     }
-    
+
     // Calculate interpolation factor (0.0 to 1.0)
     double t = 0.0;
     if (nextKeyframe! != prevKeyframe!) {
       t = (currentFrame - prevKeyframe!) / (nextKeyframe! - prevKeyframe!);
     }
-    
+
     // Apply interpolated data to elements using IDs
     // Get all element IDs that exist in both frames
     final commonIds = <String>[];
@@ -5313,57 +5422,63 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
         commonIds.add(id);
       }
     }
-    
+
     for (final elementId in commonIds) {
       final prevElementData = prevFrameData[elementId];
       final nextElementData = nextFrameData[elementId];
-      
-      if (prevElementData is Map<String, dynamic> && nextElementData is Map<String, dynamic>) {
+
+      if (prevElementData is Map<String, dynamic> &&
+          nextElementData is Map<String, dynamic>) {
         // Find the component with matching ID
-        final componentIndex = _screenComponents.indexWhere((c) => c['id'] == elementId);
+        final componentIndex =
+            _screenComponents.indexWhere((c) => c['id'] == elementId);
         if (componentIndex != -1) {
           final component = _screenComponents[componentIndex];
-        
-        // Interpolate position
-        final prevPos = prevElementData['position'];
-        final nextPos = nextElementData['position'];
-        if (prevPos != null && nextPos != null) {
-          Offset interpolatedPos;
-          if (prevPos is Offset && nextPos is Offset) {
-            interpolatedPos = Offset.lerp(prevPos, nextPos, t)!;
-          } else if (prevPos is List && nextPos is List && 
-                     prevPos.length >= 2 && nextPos.length >= 2) {
-            final x = prevPos[0] + (nextPos[0] - prevPos[0]) * t;
-            final y = prevPos[1] + (nextPos[1] - prevPos[1]) * t;
-            interpolatedPos = Offset(x.toDouble(), y.toDouble());
-          } else {
-            interpolatedPos = prevPos is Offset ? prevPos : Offset.zero;
+
+          // Interpolate position
+          final prevPos = prevElementData['position'];
+          final nextPos = nextElementData['position'];
+          if (prevPos != null && nextPos != null) {
+            Offset interpolatedPos;
+            if (prevPos is Offset && nextPos is Offset) {
+              interpolatedPos = Offset.lerp(prevPos, nextPos, t)!;
+            } else if (prevPos is List &&
+                nextPos is List &&
+                prevPos.length >= 2 &&
+                nextPos.length >= 2) {
+              final x = prevPos[0] + (nextPos[0] - prevPos[0]) * t;
+              final y = prevPos[1] + (nextPos[1] - prevPos[1]) * t;
+              interpolatedPos = Offset(x.toDouble(), y.toDouble());
+            } else {
+              interpolatedPos = prevPos is Offset ? prevPos : Offset.zero;
+            }
+            component['position'] = interpolatedPos;
           }
-          component['position'] = interpolatedPos;
-        }
-        
-        // Interpolate rotation
-        final prevRot = prevElementData['rotation'];
-        final nextRot = nextElementData['rotation'];
-        if (prevRot != null && nextRot != null) {
-          component['rotation'] = prevRot + (nextRot - prevRot) * t;
-        }
-        
-        // Interpolate scale
-        final prevScale = prevElementData['scale'];
-        final nextScale = nextElementData['scale'];
-        if (prevScale != null && nextScale != null) {
-          component['scale'] = prevScale + (nextScale - prevScale) * t;
-        }
-        
-        // Interpolate opacity
-        final prevOpacity = prevElementData['opacity'];
-        final nextOpacity = nextElementData['opacity'];
-        if (prevOpacity != null && nextOpacity != null) {
-          component['opacity'] = prevOpacity + (nextOpacity - prevOpacity) * t;
-        }
+
+          // Interpolate rotation
+          final prevRot = prevElementData['rotation'];
+          final nextRot = nextElementData['rotation'];
+          if (prevRot != null && nextRot != null) {
+            component['rotation'] = prevRot + (nextRot - prevRot) * t;
+          }
+
+          // Interpolate scale
+          final prevScale = prevElementData['scale'];
+          final nextScale = nextElementData['scale'];
+          if (prevScale != null && nextScale != null) {
+            component['scale'] = prevScale + (nextScale - prevScale) * t;
+          }
+
+          // Interpolate opacity
+          final prevOpacity = prevElementData['opacity'];
+          final nextOpacity = nextElementData['opacity'];
+          if (prevOpacity != null && nextOpacity != null) {
+            component['opacity'] =
+                prevOpacity + (nextOpacity - prevOpacity) * t;
+          }
         } else {
-          print('Warning: Could not find component with ID: $elementId for interpolation');
+          print(
+              'Warning: Could not find component with ID: $elementId for interpolation');
         }
       }
     }
@@ -5378,45 +5493,47 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
       // Reset to first frame
       _selectedFrame = 0;
     });
-    
+
     // Optionally reset elements to their initial positions
     // You can uncomment this if you want elements to return to start positions
     // _resetElementsToInitialState();
   }
-  
+
   // Optional: Reset elements to their initial state
   void _resetElementsToInitialState() {
-    if (_selectedAnimationIndex == null || _selectedAnimationIndex! >= _animations.length) {
+    if (_selectedAnimationIndex == null ||
+        _selectedAnimationIndex! >= _animations.length) {
       return;
     }
-    
+
     final animation = _animations[_selectedAnimationIndex!];
     final keyframes = List<int>.from(animation['keyframes'] ?? []);
-    
+
     if (keyframes.isNotEmpty) {
       keyframes.sort();
       // Apply the first keyframe's data
       _applyKeyframeData(keyframes.first);
     }
   }
-  
+
   // Show enhanced keyframe settings dialog
   void _showKeyframeDetails(int frame) {
-    if (_selectedAnimationIndex == null || _selectedAnimationIndex! >= _animations.length) {
+    if (_selectedAnimationIndex == null ||
+        _selectedAnimationIndex! >= _animations.length) {
       return;
     }
-    
+
     final animation = _animations[_selectedAnimationIndex!];
     final frameData = animation['frame_data'] as Map<String, dynamic>?;
-    
+
     if (frameData == null || !frameData.containsKey('frame_$frame')) {
       // Show empty keyframe dialog
       _showEmptyKeyframeDialog(frame);
       return;
     }
-    
+
     final data = frameData['frame_$frame'] as Map<String, dynamic>;
-    
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -5456,27 +5573,34 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                             const SizedBox(width: 8),
                             Text(
                               'Animation: ${animation['name'] ?? 'Unnamed'}',
-                              style: const TextStyle(color: Colors.blue, fontSize: 14, fontWeight: FontWeight.bold),
+                              style: const TextStyle(
+                                  color: Colors.blue,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold),
                             ),
                           ],
                         ),
                         const SizedBox(height: 4),
                         Text(
                           'Frame: $frame • Elements: ${data.length}',
-                          style: const TextStyle(color: Colors.white70, fontSize: 12),
+                          style: const TextStyle(
+                              color: Colors.white70, fontSize: 12),
                         ),
                       ],
                     ),
                   ),
                   const SizedBox(height: 16),
-                  
+
                   // Container elements
                   Text(
                     'Animated Elements:',
-                    style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 12),
-                  
+
                   ...data.entries.map((entry) {
                     final elementId = entry.key;
                     final elementData = entry.value as Map<String, dynamic>;
@@ -5486,17 +5610,19 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                     final rotation = elementData['rotation'] ?? 0.0;
                     final scale = elementData['scale'] ?? 1.0;
                     final opacity = elementData['opacity'] ?? 1.0;
-                    
+
                     // Handle position as either Offset or array
                     String positionText;
                     if (position is Offset) {
-                      positionText = '(${position.dx.toStringAsFixed(1)}, ${position.dy.toStringAsFixed(1)})';
+                      positionText =
+                          '(${position.dx.toStringAsFixed(1)}, ${position.dy.toStringAsFixed(1)})';
                     } else if (position is List && position.length >= 2) {
-                      positionText = '(${position[0].toStringAsFixed(1)}, ${position[1].toStringAsFixed(1)})';
+                      positionText =
+                          '(${position[0].toStringAsFixed(1)}, ${position[1].toStringAsFixed(1)})';
                     } else {
                       positionText = '(0.0, 0.0)';
                     }
-                    
+
                     // Get type icon
                     IconData typeIcon;
                     Color typeColor;
@@ -5513,7 +5639,7 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                         typeIcon = Icons.widgets;
                         typeColor = Colors.grey;
                     }
-                    
+
                     return Container(
                       margin: const EdgeInsets.only(bottom: 12),
                       padding: const EdgeInsets.all(16),
@@ -5541,7 +5667,8 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                                 ),
                               ),
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 6, vertical: 2),
                                 decoration: BoxDecoration(
                                   color: typeColor.withOpacity(0.2),
                                   borderRadius: BorderRadius.circular(4),
@@ -5558,16 +5685,24 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                             ],
                           ),
                           const SizedBox(height: 12),
-                          
+
                           // Properties grid
                           Row(
                             children: [
                               Expanded(
-                                child: _buildPropertyCard('Position', positionText, Icons.my_location, Colors.red),
+                                child: _buildPropertyCard(
+                                    'Position',
+                                    positionText,
+                                    Icons.my_location,
+                                    Colors.red),
                               ),
                               const SizedBox(width: 8),
                               Expanded(
-                                child: _buildPropertyCard('Rotation', '${rotation.toStringAsFixed(1)}°', Icons.rotate_right, Colors.orange),
+                                child: _buildPropertyCard(
+                                    'Rotation',
+                                    '${rotation.toStringAsFixed(1)}°',
+                                    Icons.rotate_right,
+                                    Colors.orange),
                               ),
                             ],
                           ),
@@ -5575,20 +5710,31 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                           Row(
                             children: [
                               Expanded(
-                                child: _buildPropertyCard('Scale', '${scale.toStringAsFixed(2)}x', Icons.zoom_in, Colors.purple),
+                                child: _buildPropertyCard(
+                                    'Scale',
+                                    '${scale.toStringAsFixed(2)}x',
+                                    Icons.zoom_in,
+                                    Colors.purple),
                               ),
                               const SizedBox(width: 8),
                               Expanded(
-                                child: _buildPropertyCard('Opacity', '${(opacity * 100).toStringAsFixed(0)}%', Icons.opacity, Colors.teal),
+                                child: _buildPropertyCard(
+                                    'Opacity',
+                                    '${(opacity * 100).toStringAsFixed(0)}%',
+                                    Icons.opacity,
+                                    Colors.teal),
                               ),
                             ],
                           ),
-                          
+
                           // Element ID (for debugging)
                           const SizedBox(height: 8),
                           Text(
                             'ID: $elementId',
-                            style: const TextStyle(color: Colors.white38, fontSize: 10, fontFamily: 'monospace'),
+                            style: const TextStyle(
+                                color: Colors.white38,
+                                fontSize: 10,
+                                fontFamily: 'monospace'),
                           ),
                         ],
                       ),
@@ -5606,7 +5752,8 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                 Navigator.of(context).pop();
               },
               icon: const Icon(Icons.delete, color: Colors.red, size: 16),
-              label: const Text('Delete Keyframe', style: TextStyle(color: Colors.red)),
+              label: const Text('Delete Keyframe',
+                  style: TextStyle(color: Colors.red)),
             ),
             TextButton.icon(
               onPressed: () {
@@ -5615,13 +5762,15 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                 Navigator.of(context).pop();
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text('Applied keyframe $frame data to current elements'),
+                    content: Text(
+                        'Applied keyframe $frame data to current elements'),
                     backgroundColor: Colors.green,
                   ),
                 );
               },
               icon: const Icon(Icons.play_arrow, color: Colors.green, size: 16),
-              label: const Text('Apply Now', style: TextStyle(color: Colors.green)),
+              label: const Text('Apply Now',
+                  style: TextStyle(color: Colors.green)),
             ),
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
@@ -5632,9 +5781,10 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
       },
     );
   }
-  
+
   // Helper method to build property cards
-  Widget _buildPropertyCard(String label, String value, IconData icon, Color color) {
+  Widget _buildPropertyCard(
+      String label, String value, IconData icon, Color color) {
     return Container(
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
@@ -5648,7 +5798,8 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
           const SizedBox(height: 4),
           Text(
             label,
-            style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.bold),
+            style: TextStyle(
+                color: color, fontSize: 10, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 2),
           Text(
@@ -5659,7 +5810,7 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
       ),
     );
   }
-  
+
   // Show dialog for empty keyframes
   void _showEmptyKeyframeDialog(int frame) {
     showDialog(
@@ -5687,7 +5838,10 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
               const SizedBox(height: 16),
               Text(
                 'To add animation data to this keyframe:',
-                style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
               Text(
@@ -5706,28 +5860,29 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
       },
     );
   }
-  
+
   // Delete a keyframe
   void _deleteKeyframe(int frame) {
-    if (_selectedAnimationIndex == null || _selectedAnimationIndex! >= _animations.length) {
+    if (_selectedAnimationIndex == null ||
+        _selectedAnimationIndex! >= _animations.length) {
       return;
     }
-    
+
     final animation = _animations[_selectedAnimationIndex!];
     final keyframes = List<int>.from(animation['keyframes'] ?? []);
     final frameData = animation['frame_data'] as Map<String, dynamic>?;
-    
+
     // Remove keyframe from list
     keyframes.remove(frame);
     animation['keyframes'] = keyframes;
-    
+
     // Remove frame data
     frameData?.remove('frame_$frame');
-    
+
     setState(() {
       // Trigger UI update
     });
-    
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Deleted keyframe at frame $frame'),
@@ -5738,92 +5893,101 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
 
   // Check if a keyframe has data
   bool _hasKeyframeData(int frame) {
-    if (_selectedAnimationIndex == null || _selectedAnimationIndex! >= _animations.length) {
+    if (_selectedAnimationIndex == null ||
+        _selectedAnimationIndex! >= _animations.length) {
       return false;
     }
-    
+
     final animation = _animations[_selectedAnimationIndex!];
     final frameData = animation['frame_data'] as Map<String, dynamic>?;
-    
+
     if (frameData == null || !frameData.containsKey('frame_$frame')) {
       return false;
     }
-    
+
     final data = frameData['frame_$frame'] as Map<String, dynamic>;
     return data.isNotEmpty;
   }
 
   // Get tooltip text for a keyframe
   String _getKeyframeTooltip(int frame) {
-    if (_selectedAnimationIndex == null || _selectedAnimationIndex! >= _animations.length) {
+    if (_selectedAnimationIndex == null ||
+        _selectedAnimationIndex! >= _animations.length) {
       return 'Frame $frame';
     }
-    
+
     final animation = _animations[_selectedAnimationIndex!];
     final frameData = animation['frame_data'] as Map<String, dynamic>?;
-    
+
     if (frameData == null || !frameData.containsKey('frame_$frame')) {
       return 'Frame $frame (No data)';
     }
-    
+
     final data = frameData['frame_$frame'] as Map<String, dynamic>;
     final elementCount = data.length;
-    
+
     if (elementCount == 0) {
       return 'Frame $frame (No elements)';
     }
-    
+
     String tooltip = 'Frame $frame\nElements: $elementCount\n';
-    
+
     // Add details for each element
     data.forEach((key, value) {
       if (value is Map<String, dynamic>) {
         final elementName = value['name'] ?? 'Unknown';
         final position = value['position'];
         tooltip += '\n$elementName:\n';
-        
+
         // Handle position as either Offset or array
         if (position is Offset) {
-          tooltip += '  Position: (${position.dx.toStringAsFixed(1)}, ${position.dy.toStringAsFixed(1)})\n';
+          tooltip +=
+              '  Position: (${position.dx.toStringAsFixed(1)}, ${position.dy.toStringAsFixed(1)})\n';
         } else if (position is List && position.length >= 2) {
-          tooltip += '  Position: (${position[0].toStringAsFixed(1)}, ${position[1].toStringAsFixed(1)})\n';
+          tooltip +=
+              '  Position: (${position[0].toStringAsFixed(1)}, ${position[1].toStringAsFixed(1)})\n';
         } else {
           tooltip += '  Position: (0.0, 0.0)\n';
         }
-        
-        tooltip += '  Rotation: ${(value['rotation'] ?? 0.0).toStringAsFixed(1)}°\n';
+
+        tooltip +=
+            '  Rotation: ${(value['rotation'] ?? 0.0).toStringAsFixed(1)}°\n';
         tooltip += '  Scale: ${(value['scale'] ?? 1.0).toStringAsFixed(2)}\n';
         tooltip += '  Opacity: ${(value['opacity'] ?? 1.0).toStringAsFixed(2)}';
       }
     });
-    
+
     return tooltip;
   }
 
   // Create keyframe at current frame with selected element data
   void _createKeyframeAtCurrentFrame() {
-    print('_createKeyframeAtCurrentFrame called - SelectedAnimation: $_selectedAnimationIndex, SelectedFrame: $_selectedFrame');
-    
-    if (_selectedAnimationIndex == null || _selectedAnimationIndex! >= _animations.length) {
+    print(
+        '_createKeyframeAtCurrentFrame called - SelectedAnimation: $_selectedAnimationIndex, SelectedFrame: $_selectedFrame');
+
+    if (_selectedAnimationIndex == null ||
+        _selectedAnimationIndex! >= _animations.length) {
       print('Cannot create keyframe - no animation selected');
       // Show warning to user
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('No animation selected. Please select an animation before creating a keyframe.'),
+          content: Text(
+              'No animation selected. Please select an animation before creating a keyframe.'),
           duration: const Duration(seconds: 3),
           backgroundColor: Colors.orange,
         ),
       );
       return;
     }
-    
+
     final animation = _animations[_selectedAnimationIndex!];
     final keyframes = List<int>.from(animation['keyframes'] ?? []);
-    
+
     // Get selected elements
-    final selectedElements = _screenComponents.where((c) => c['selected'] == true).toList();
+    final selectedElements =
+        _screenComponents.where((c) => c['selected'] == true).toList();
     print('Found ${selectedElements.length} selected elements');
-    
+
     if (selectedElements.isNotEmpty) {
       // Add current frame as keyframe if not already present
       if (!keyframes.contains(_selectedFrame)) {
@@ -5832,11 +5996,12 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
         animation['keyframes'] = keyframes;
         print('Added keyframe at frame $_selectedFrame');
       }
-      
+
       // Store the current state of all selected elements at this frame
       final frameData = <String, dynamic>{};
       for (final element in selectedElements) {
-        final elementId = element['id'] ?? 'unknown_${DateTime.now().millisecondsSinceEpoch}';
+        final elementId =
+            element['id'] ?? 'unknown_${DateTime.now().millisecondsSinceEpoch}';
         frameData[elementId] = {
           'id': elementId,
           'type': element['type'],
@@ -5846,16 +6011,17 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
           'opacity': element['opacity'] ?? 1.0,
           'name': element['name'], // Also store name for reference
         };
-        print('Recorded data for ${element['name']} (ID: $elementId): pos=${element['position']}, rot=${element['rotation']}, scale=${element['scale']}, opacity=${element['opacity']}');
+        print(
+            'Recorded data for ${element['name']} (ID: $elementId): pos=${element['position']}, rot=${element['rotation']}, scale=${element['scale']}, opacity=${element['opacity']}');
       }
-      
+
       // Store frame data in animation
       if (animation['frame_data'] == null) {
         animation['frame_data'] = <String, dynamic>{};
       }
       animation['frame_data']['frame_$_selectedFrame'] = frameData;
       print('Saved frame data for frame $_selectedFrame');
-      
+
       setState(() {
         // Trigger UI update
       });
@@ -5864,7 +6030,8 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
       // Show warning to user
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('No elements selected. Please select elements before creating a keyframe.'),
+          content: Text(
+              'No elements selected. Please select elements before creating a keyframe.'),
           duration: const Duration(seconds: 3),
           backgroundColor: Colors.orange,
         ),
@@ -5874,20 +6041,24 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
 
   // Record keyframe when element properties change
   void _recordKeyframe() {
-    print('_recordKeyframe called - Recording: $_isRecording, SelectedAnimation: $_selectedAnimationIndex, SelectedFrame: $_selectedFrame');
-    
-    if (!_isRecording || _selectedAnimationIndex == null || _selectedAnimationIndex! >= _animations.length) {
+    print(
+        '_recordKeyframe called - Recording: $_isRecording, SelectedAnimation: $_selectedAnimationIndex, SelectedFrame: $_selectedFrame');
+
+    if (!_isRecording ||
+        _selectedAnimationIndex == null ||
+        _selectedAnimationIndex! >= _animations.length) {
       print('Recording aborted - conditions not met');
       return;
     }
-    
+
     final animation = _animations[_selectedAnimationIndex!];
     final keyframes = List<int>.from(animation['keyframes'] ?? []);
-    
+
     // Always record data, even if keyframe already exists (to update current state)
-    final selectedElements = _screenComponents.where((c) => c['selected'] == true).toList();
+    final selectedElements =
+        _screenComponents.where((c) => c['selected'] == true).toList();
     print('Found ${selectedElements.length} selected elements');
-    
+
     if (selectedElements.isNotEmpty) {
       // Add current frame as keyframe if not already present
       if (!keyframes.contains(_selectedFrame)) {
@@ -5896,11 +6067,12 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
         animation['keyframes'] = keyframes;
         print('Added keyframe at frame $_selectedFrame');
       }
-      
+
       // Store the current state of all selected elements at this frame
       final frameData = <String, dynamic>{};
       for (final element in selectedElements) {
-        final elementId = element['id'] ?? 'unknown_${DateTime.now().millisecondsSinceEpoch}';
+        final elementId =
+            element['id'] ?? 'unknown_${DateTime.now().millisecondsSinceEpoch}';
         frameData[elementId] = {
           'id': elementId,
           'type': element['type'],
@@ -5910,16 +6082,17 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
           'opacity': element['opacity'] ?? 1.0,
           'name': element['name'], // Also store name for reference
         };
-        print('Recorded data for ${element['name']} (ID: $elementId): pos=${element['position']}, rot=${element['rotation']}, scale=${element['scale']}, opacity=${element['opacity']}');
+        print(
+            'Recorded data for ${element['name']} (ID: $elementId): pos=${element['position']}, rot=${element['rotation']}, scale=${element['scale']}, opacity=${element['opacity']}');
       }
-      
+
       // Store frame data in animation
       if (animation['frame_data'] == null) {
         animation['frame_data'] = <String, dynamic>{};
       }
       animation['frame_data']['frame_$_selectedFrame'] = frameData;
       print('Saved frame data for frame $_selectedFrame');
-      
+
       setState(() {
         // Trigger UI update
       });
@@ -5958,7 +6131,7 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
             ),
           ),
           const SizedBox(height: 16),
-          
+
           // Animation Settings Section
           Container(
             margin: const EdgeInsets.symmetric(horizontal: 16),
@@ -5985,7 +6158,7 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                   ],
                 ),
                 const SizedBox(height: 20),
-                
+
                 // Loop Setting
                 _buildAnimationProperty(
                   'Loop',
@@ -5998,7 +6171,7 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                   },
                 ),
                 const SizedBox(height: 16),
-                
+
                 // Speed Type Setting
                 _buildAnimationProperty(
                   'Speed Type',
@@ -6012,7 +6185,7 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
             ),
           ),
           const SizedBox(height: 16),
-          
+
           // Debug: Show saved keyframe data
           Container(
             margin: const EdgeInsets.symmetric(horizontal: 16),
@@ -6039,7 +6212,8 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                   ],
                 ),
                 const SizedBox(height: 12),
-                if (animation['keyframes'] != null && animation['keyframes'].isNotEmpty) ...[
+                if (animation['keyframes'] != null &&
+                    animation['keyframes'].isNotEmpty) ...[
                   Text(
                     'Keyframes: ${animation['keyframes'].join(', ')}',
                     style: TextStyle(color: Colors.white70, fontSize: 12),
@@ -6048,9 +6222,14 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                   if (animation['frame_data'] != null) ...[
                     Text(
                       'Frame Data:',
-                      style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                          color: Colors.white70,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold),
                     ),
-                    ...((animation['frame_data'] as Map<String, dynamic>).entries.map((entry) {
+                    ...((animation['frame_data'] as Map<String, dynamic>)
+                        .entries
+                        .map((entry) {
                       return Padding(
                         padding: const EdgeInsets.only(left: 8, top: 4),
                         child: Text(
@@ -6081,19 +6260,22 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
   void _showSpeedTypeDialog(Map<String, dynamic> animation) {
     final speedTypes = ['Slow', 'Normal', 'Fast', 'Custom'];
     final currentSpeedType = animation['speed_type'] ?? 'Normal';
-    
+
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
           backgroundColor: const Color(0xFF232323),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          title: const Text('Select Speed Type', style: TextStyle(color: Colors.white)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          title: const Text('Select Speed Type',
+              style: TextStyle(color: Colors.white)),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: speedTypes.map((speedType) {
               return ListTile(
-                title: Text(speedType, style: const TextStyle(color: Colors.white)),
+                title: Text(speedType,
+                    style: const TextStyle(color: Colors.white)),
                 leading: Radio<String>(
                   value: speedType,
                   groupValue: currentSpeedType,
@@ -6111,7 +6293,8 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
+              child:
+                  const Text('Cancel', style: TextStyle(color: Colors.white54)),
             ),
           ],
         );
@@ -6149,7 +6332,7 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
             ),
           ),
           const SizedBox(height: 16),
-          
+
           // Animation Properties Section
           Container(
             margin: const EdgeInsets.symmetric(horizontal: 16),
@@ -6176,7 +6359,7 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                   ],
                 ),
                 const SizedBox(height: 16),
-                
+
                 // Duration Setting
                 _buildAnimationProperty(
                   'Duration',
@@ -6187,7 +6370,7 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                   },
                 ),
                 const SizedBox(height: 12),
-                
+
                 // Delay Setting
                 _buildAnimationProperty(
                   'Delay',
@@ -6198,7 +6381,7 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                   },
                 ),
                 const SizedBox(height: 12),
-                
+
                 // Easing Setting
                 _buildAnimationProperty(
                   'Easing',
@@ -6209,7 +6392,7 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                   },
                 ),
                 const SizedBox(height: 12),
-                
+
                 // Loop Setting
                 _buildAnimationProperty(
                   'Loop',
@@ -6217,7 +6400,8 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                   Icons.repeat,
                   () {
                     setState(() {
-                      component['animation_loop'] = !(component['animation_loop'] ?? false);
+                      component['animation_loop'] =
+                          !(component['animation_loop'] ?? false);
                     });
                   },
                 ),
@@ -6225,7 +6409,7 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
             ),
           ),
           const SizedBox(height: 16),
-          
+
           // Transform Properties Section
           Container(
             margin: const EdgeInsets.symmetric(horizontal: 16),
@@ -6252,82 +6436,84 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                   ],
                 ),
                 const SizedBox(height: 16),
-                
-                                 // Position X
-                 _buildSliderProperty(
-                   'Position X',
-                   component['position']?.dx ?? 0.0,
-                   -1000,
-                   1000,
-                   (value) {
-                     setState(() {
-                       final pos = component['position'] as Offset? ?? Offset.zero;
-                       component['position'] = Offset(value, pos.dy);
-                       _recordKeyframe(); // Record keyframe when position changes
-                     });
-                   },
-                 ),
+
+                // Position X
+                _buildSliderProperty(
+                  'Position X',
+                  component['position']?.dx ?? 0.0,
+                  -1000,
+                  1000,
+                  (value) {
+                    setState(() {
+                      final pos =
+                          component['position'] as Offset? ?? Offset.zero;
+                      component['position'] = Offset(value, pos.dy);
+                      _recordKeyframe(); // Record keyframe when position changes
+                    });
+                  },
+                ),
                 const SizedBox(height: 12),
-                
-                                 // Position Y
-                 _buildSliderProperty(
-                   'Position Y',
-                   component['position']?.dy ?? 0.0,
-                   -1000,
-                   1000,
-                   (value) {
-                     setState(() {
-                       final pos = component['position'] as Offset? ?? Offset.zero;
-                       component['position'] = Offset(pos.dx, value);
-                       _recordKeyframe(); // Record keyframe when position changes
-                     });
-                   },
-                 ),
-                 const SizedBox(height: 12),
-                 
-                 // Scale
-                 _buildSliderProperty(
-                   'Scale',
-                   component['scale'] ?? 1.0,
-                   0.1,
-                   3.0,
-                   (value) {
-                     setState(() {
-                       component['scale'] = value;
-                       _recordKeyframe(); // Record keyframe when scale changes
-                     });
-                   },
-                 ),
-                 const SizedBox(height: 12),
-                 
-                 // Rotation
-                 _buildSliderProperty(
-                   'Rotation',
-                   component['rotation'] ?? 0.0,
-                   -180,
-                   180,
-                   (value) {
-                     setState(() {
-                       component['rotation'] = value;
-                       _recordKeyframe(); // Record keyframe when rotation changes
-                     });
-                   },
-                 ),
-                 const SizedBox(height: 12),
-                 
-                 // Opacity
-                 _buildSliderProperty(
-                   'Opacity',
-                   component['opacity'] ?? 1.0,
-                   0.0,
-                   1.0,
-                   (value) {
-                     setState(() {
-                       component['opacity'] = value;
-                       _recordKeyframe(); // Record keyframe when opacity changes
-                     });
-                   },
-                 ),
+
+                // Position Y
+                _buildSliderProperty(
+                  'Position Y',
+                  component['position']?.dy ?? 0.0,
+                  -1000,
+                  1000,
+                  (value) {
+                    setState(() {
+                      final pos =
+                          component['position'] as Offset? ?? Offset.zero;
+                      component['position'] = Offset(pos.dx, value);
+                      _recordKeyframe(); // Record keyframe when position changes
+                    });
+                  },
+                ),
+                const SizedBox(height: 12),
+
+                // Scale
+                _buildSliderProperty(
+                  'Scale',
+                  component['scale'] ?? 1.0,
+                  0.1,
+                  3.0,
+                  (value) {
+                    setState(() {
+                      component['scale'] = value;
+                      _recordKeyframe(); // Record keyframe when scale changes
+                    });
+                  },
+                ),
+                const SizedBox(height: 12),
+
+                // Rotation
+                _buildSliderProperty(
+                  'Rotation',
+                  component['rotation'] ?? 0.0,
+                  -180,
+                  180,
+                  (value) {
+                    setState(() {
+                      component['rotation'] = value;
+                      _recordKeyframe(); // Record keyframe when rotation changes
+                    });
+                  },
+                ),
+                const SizedBox(height: 12),
+
+                // Opacity
+                _buildSliderProperty(
+                  'Opacity',
+                  component['opacity'] ?? 1.0,
+                  0.0,
+                  1.0,
+                  (value) {
+                    setState(() {
+                      component['opacity'] = value;
+                      _recordKeyframe(); // Record keyframe when opacity changes
+                    });
+                  },
+                ),
               ],
             ),
           ),
@@ -6338,7 +6524,8 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
   }
 
   // Helper widget to build animation property row
-  Widget _buildAnimationProperty(String label, String value, IconData icon, VoidCallback onTap) {
+  Widget _buildAnimationProperty(
+      String label, String value, IconData icon, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -6384,7 +6571,8 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
   }
 
   // Helper widget to build slider property
-  Widget _buildSliderProperty(String label, double value, double min, double max, Function(double) onChanged) {
+  Widget _buildSliderProperty(String label, double value, double min,
+      double max, Function(double) onChanged) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -8031,7 +8219,8 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
               // Create a copy of the data with position
               final componentData = Map<String, dynamic>.from(data);
               // Add unique ID
-              componentData['id'] = _generateElementId(componentData['type'] ?? 'element');
+              componentData['id'] =
+                  _generateElementId(componentData['type'] ?? 'element');
               // Position at left top of the page by default
               componentData['position'] = const Offset(10, 10);
               componentData['rotation'] = 0.0; // Initialize rotation
@@ -9328,112 +9517,86 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                Icon(Icons.movie, color: Colors.blue, size: 22),
-                const SizedBox(width: 8),
-                ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 200),
-                  child: Text(
-                    anim['name'] ?? 'Animation',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
+                  Icon(Icons.movie, color: Colors.blue, size: 22),
+                  const SizedBox(width: 8),
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 200),
+                    child: Text(
+                      anim['name'] ?? 'Animation',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    overflow: TextOverflow.ellipsis,
                   ),
-                ),
-                const SizedBox(width: 8),
-                // Recording toggle button
-                IconButton(
-                  icon: Icon(
-                    Icons.fiber_manual_record,
-                    color: _isRecording ? Colors.red : Colors.white54,
-                    size: 20,
-                  ),
-                  onPressed: () {
-                    setState(() {
-                      _isRecording = !_isRecording;
-                      
-                      // If starting recording, immediately create a keyframe at current frame
-                      if (_isRecording) {
-                        if (_selectedAnimationIndex != null && _selectedAnimationIndex! < _animations.length) {
-                          _createKeyframeAtCurrentFrame();
-                          // Show feedback that keyframe was created
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Keyframe created at frame $_selectedFrame'),
-                              duration: const Duration(seconds: 2),
-                              backgroundColor: Colors.green,
-                            ),
-                          );
-                        } else {
-                          // Show warning if no animation is selected
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('No animation selected. Please select an animation before recording.'),
-                              duration: const Duration(seconds: 3),
-                              backgroundColor: Colors.orange,
-                            ),
-                          );
+                  const SizedBox(width: 8),
+                  // Recording toggle button
+                  IconButton(
+                    icon: Icon(
+                      Icons.fiber_manual_record,
+                      color: _isRecording ? Colors.red : Colors.white54,
+                      size: 20,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _isRecording = !_isRecording;
+
+                        // If starting recording, immediately create a keyframe at current frame
+                        if (_isRecording) {
+                          if (_selectedAnimationIndex != null &&
+                              _selectedAnimationIndex! < _animations.length) {
+                            _createKeyframeAtCurrentFrame();
+                            // Show feedback that keyframe was created
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                    'Keyframe created at frame $_selectedFrame'),
+                                duration: const Duration(seconds: 2),
+                                backgroundColor: Colors.green,
+                              ),
+                            );
+                          } else {
+                            // Show warning if no animation is selected
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                    'No animation selected. Please select an animation before recording.'),
+                                duration: const Duration(seconds: 3),
+                                backgroundColor: Colors.orange,
+                              ),
+                            );
+                          }
                         }
-                      }
-                    });
-                  },
-                  tooltip: _isRecording ? 'Stop Recording' : 'Start Recording',
-                ),
-                // Recording status indicator
-                if (_isRecording)
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: Colors.red.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(4),
-                      border: Border.all(color: Colors.red, width: 1),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.fiber_manual_record,
-                          color: Colors.red,
-                          size: 8,
-                        ),
-                        const SizedBox(width: 2),
-                        Text(
-                          'REC',
-                          style: TextStyle(
-                            color: Colors.red,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
+                      });
+                    },
+                    tooltip:
+                        _isRecording ? 'Stop Recording' : 'Start Recording',
                   ),
-                // Keyframe count indicator
-                if (_selectedAnimationIndex != null && _selectedAnimationIndex! < _animations.length)
-                  Tooltip(
-                    message: 'Keyframes: ${(_animations[_selectedAnimationIndex!]['keyframes'] as List<dynamic>?)?.length ?? 0}',
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  // Recording status indicator
+                  if (_isRecording)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(
-                        color: Colors.amber.withOpacity(0.2),
+                        color: Colors.red.withOpacity(0.2),
                         borderRadius: BorderRadius.circular(4),
-                        border: Border.all(color: Colors.amber, width: 1),
+                        border: Border.all(color: Colors.red, width: 1),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(
-                            Icons.diamond,
-                            color: Colors.amber,
+                            Icons.fiber_manual_record,
+                            color: Colors.red,
                             size: 8,
                           ),
                           const SizedBox(width: 2),
                           Text(
-                            '${(_animations[_selectedAnimationIndex!]['keyframes'] as List<dynamic>?)?.length ?? 0}',
+                            'REC',
                             style: TextStyle(
-                              color: Colors.amber,
+                              color: Colors.red,
                               fontSize: 10,
                               fontWeight: FontWeight.bold,
                             ),
@@ -9441,53 +9604,88 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                         ],
                       ),
                     ),
+                  // Keyframe count indicator
+                  if (_selectedAnimationIndex != null &&
+                      _selectedAnimationIndex! < _animations.length)
+                    Tooltip(
+                      message:
+                          'Keyframes: ${(_animations[_selectedAnimationIndex!]['keyframes'] as List<dynamic>?)?.length ?? 0}',
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: Colors.amber.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(4),
+                          border: Border.all(color: Colors.amber, width: 1),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.diamond,
+                              color: Colors.amber,
+                              size: 8,
+                            ),
+                            const SizedBox(width: 2),
+                            Text(
+                              '${(_animations[_selectedAnimationIndex!]['keyframes'] as List<dynamic>?)?.length ?? 0}',
+                              style: TextStyle(
+                                color: Colors.amber,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  // Run animation button
+                  IconButton(
+                    icon: Icon(
+                      _isPlaying ? Icons.pause : Icons.play_arrow,
+                      color: Colors.green,
+                      size: 20,
+                    ),
+                    onPressed: () {
+                      if (_isPlaying) {
+                        _stopAnimation();
+                      } else {
+                        _playAnimation();
+                      }
+                    },
+                    tooltip: _isPlaying ? 'Pause Animation' : 'Play Animation',
                   ),
-                // Run animation button
-                IconButton(
-                  icon: Icon(
-                    _isPlaying ? Icons.pause : Icons.play_arrow,
-                    color: Colors.green,
-                    size: 20,
+                  const SizedBox(width: 16),
+                  IconButton(
+                    icon: Icon(Icons.skip_previous,
+                        color: Colors.white70, size: 20),
+                    onPressed: () {
+                      setState(() {
+                        _selectedFrame =
+                            (_selectedFrame - 1).clamp(0, totalFrames - 1);
+                      });
+                    },
                   ),
-                  onPressed: () {
-                    if (_isPlaying) {
-                      _stopAnimation();
-                    } else {
-                      _playAnimation();
-                    }
-                  },
-                  tooltip: _isPlaying ? 'Pause Animation' : 'Play Animation',
-                ),
-                const SizedBox(width: 16),
-                IconButton(
-                  icon: Icon(Icons.skip_previous,
-                      color: Colors.white70, size: 20),
-                  onPressed: () {
-                    setState(() {
-                      _selectedFrame =
-                          (_selectedFrame - 1).clamp(0, totalFrames - 1);
-                    });
-                  },
-                ),
-                const SizedBox(width: 8),
-                IconButton(
-                  icon: Icon(Icons.play_arrow, color: Colors.white, size: 24),
-                  onPressed: () {
-                    // Optionally implement playback
-                  },
-                ),
-                const SizedBox(width: 8),
-                IconButton(
-                  icon: Icon(Icons.skip_next, color: Colors.white70, size: 20),
-                  onPressed: () {
-                    setState(() {
-                      _selectedFrame =
-                          (_selectedFrame + 1).clamp(0, totalFrames - 1);
-                    });
-                  },
-                ),
-                const SizedBox(width: 16),
-                Icon(Icons.settings, color: Colors.white24, size: 20),
+                  const SizedBox(width: 8),
+                  IconButton(
+                    icon: Icon(Icons.play_arrow, color: Colors.white, size: 24),
+                    onPressed: () {
+                      // Optionally implement playback
+                    },
+                  ),
+                  const SizedBox(width: 8),
+                  IconButton(
+                    icon:
+                        Icon(Icons.skip_next, color: Colors.white70, size: 20),
+                    onPressed: () {
+                      setState(() {
+                        _selectedFrame =
+                            (_selectedFrame + 1).clamp(0, totalFrames - 1);
+                      });
+                    },
+                  ),
+                  const SizedBox(width: 16),
+                  Icon(Icons.settings, color: Colors.white24, size: 20),
                 ],
               ),
             ),
@@ -9544,14 +9742,17 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                                 setState(() {
                                   // Set the selected frame first
                                   _selectedFrame = i;
-                                  
+
                                   if (isKey) {
                                     // Remove existing keyframe
                                     keyframes.remove(i);
-                                    _animations[_selectedAnimationIndex!]['keyframes'] = keyframes;
-                                    
+                                    _animations[_selectedAnimationIndex!]
+                                        ['keyframes'] = keyframes;
+
                                     // Also remove frame data if it exists
-                                    final frameData = _animations[_selectedAnimationIndex!]['frame_data'];
+                                    final frameData =
+                                        _animations[_selectedAnimationIndex!]
+                                            ['frame_data'];
                                     if (frameData != null) {
                                       frameData.remove('frame_$i');
                                     }
@@ -9559,39 +9760,59 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                                     // Add new keyframe
                                     keyframes.add(i);
                                     keyframes.sort();
-                                    _animations[_selectedAnimationIndex!]['keyframes'] = keyframes;
-                                    
+                                    _animations[_selectedAnimationIndex!]
+                                        ['keyframes'] = keyframes;
+
                                     // If recording is enabled, save current element state
                                     if (_isRecording) {
-                                      print('Recording enabled - creating keyframe at frame $i');
-                                      final selectedElements = _screenComponents.where((c) => c['selected'] == true).toList();
+                                      print(
+                                          'Recording enabled - creating keyframe at frame $i');
+                                      final selectedElements = _screenComponents
+                                          .where((c) => c['selected'] == true)
+                                          .toList();
                                       if (selectedElements.isNotEmpty) {
-                                        print('Found ${selectedElements.length} selected elements to record');
+                                        print(
+                                            'Found ${selectedElements.length} selected elements to record');
                                         final frameData = <String, dynamic>{};
-                                        for (final element in selectedElements) {
-                                          final elementId = element['id'] ?? 'unknown_${DateTime.now().millisecondsSinceEpoch}';
+                                        for (final element
+                                            in selectedElements) {
+                                          final elementId = element['id'] ??
+                                              'unknown_${DateTime.now().millisecondsSinceEpoch}';
                                           frameData[elementId] = {
                                             'id': elementId,
                                             'type': element['type'],
-                                            'position': element['position'] ?? Offset.zero,
-                                            'rotation': element['rotation'] ?? 0.0,
+                                            'position': element['position'] ??
+                                                Offset.zero,
+                                            'rotation':
+                                                element['rotation'] ?? 0.0,
                                             'scale': element['scale'] ?? 1.0,
-                                            'opacity': element['opacity'] ?? 1.0,
+                                            'opacity':
+                                                element['opacity'] ?? 1.0,
                                             'name': element['name'],
                                           };
                                         }
-                                        
+
                                         // Store frame data in animation
-                                        if (_animations[_selectedAnimationIndex!]['frame_data'] == null) {
-                                          _animations[_selectedAnimationIndex!]['frame_data'] = <String, dynamic>{};
+                                        if (_animations[
+                                                    _selectedAnimationIndex!]
+                                                ['frame_data'] ==
+                                            null) {
+                                          _animations[_selectedAnimationIndex!]
+                                                  ['frame_data'] =
+                                              <String, dynamic>{};
                                         }
-                                        _animations[_selectedAnimationIndex!]['frame_data']['frame_$i'] = frameData;
-                                        print('Saved keyframe data for frame $i');
+                                        _animations[_selectedAnimationIndex!]
+                                                ['frame_data']['frame_$i'] =
+                                            frameData;
+                                        print(
+                                            'Saved keyframe data for frame $i');
                                       } else {
-                                        print('No elements selected - cannot record keyframe');
+                                        print(
+                                            'No elements selected - cannot record keyframe');
                                       }
                                     } else {
-                                      print('Recording disabled - keyframe created without element data');
+                                      print(
+                                          'Recording disabled - keyframe created without element data');
                                     }
                                   }
                                 });
@@ -9610,36 +9831,54 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
                                       Draggable<int>(
                                         data: i,
                                         feedback: Icon(Icons.diamond,
-                                            size: 18, color: Colors.amber.withOpacity(0.8)),
+                                            size: 18,
+                                            color:
+                                                Colors.amber.withOpacity(0.8)),
                                         childWhenDragging: Icon(Icons.diamond,
-                                            size: 18, color: Colors.amber.withOpacity(0.3)),
+                                            size: 18,
+                                            color:
+                                                Colors.amber.withOpacity(0.3)),
                                         child: Tooltip(
                                           message: _getKeyframeTooltip(i),
                                           child: Icon(
                                             Icons.diamond,
                                             size: 18,
-                                            color: _hasKeyframeData(i) ? Colors.amber : Colors.amber.withOpacity(0.5),
+                                            color: _hasKeyframeData(i)
+                                                ? Colors.amber
+                                                : Colors.amber.withOpacity(0.5),
                                           ),
                                         ),
                                         onDragEnd: (details) {
                                           // Calculate new frame position based on drag end position
-                                          final RenderBox renderBox = context.findRenderObject() as RenderBox;
-                                          final localPosition = renderBox.globalToLocal(details.offset);
-                                          final newFrame = (localPosition.dx / frameWidth).round().clamp(0, totalFrames - 1);
-                                          
-                                          if (newFrame != i && !keyframes.contains(newFrame)) {
+                                          final RenderBox renderBox = context
+                                              .findRenderObject() as RenderBox;
+                                          final localPosition = renderBox
+                                              .globalToLocal(details.offset);
+                                          final newFrame =
+                                              (localPosition.dx / frameWidth)
+                                                  .round()
+                                                  .clamp(0, totalFrames - 1);
+
+                                          if (newFrame != i &&
+                                              !keyframes.contains(newFrame)) {
                                             setState(() {
                                               keyframes.remove(i);
                                               keyframes.add(newFrame);
                                               keyframes.sort();
-                                              _animations[_selectedAnimationIndex!]['keyframes'] = keyframes;
-                                              
+                                              _animations[
+                                                      _selectedAnimationIndex!]
+                                                  ['keyframes'] = keyframes;
+
                                               // Move frame data if it exists
-                                              final frameData = _animations[_selectedAnimationIndex!]['frame_data'];
+                                              final frameData = _animations[
+                                                      _selectedAnimationIndex!]
+                                                  ['frame_data'];
                                               if (frameData != null) {
-                                                final oldFrameData = frameData['frame_$i'];
+                                                final oldFrameData =
+                                                    frameData['frame_$i'];
                                                 if (oldFrameData != null) {
-                                                  frameData['frame_$newFrame'] = oldFrameData;
+                                                  frameData['frame_$newFrame'] =
+                                                      oldFrameData;
                                                   frameData.remove('frame_$i');
                                                 }
                                               }
