@@ -597,8 +597,11 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
     Widget _buildNodesPage() {
       // If editing a specific interaction, show the node editor
       if (_currentEditingInteraction != null) {
+        print('Building interaction node editor for: ${_currentEditingInteraction!['nodeName']}'); // Debug print
         return _buildInteractionNodeEditor(_currentEditingInteraction!);
       }
+      
+      print('Building default nodes page'); // Debug print
 
       return Container(
         color: Color(0xFF151515),
@@ -2806,6 +2809,8 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
           return Icons.data_usage_outlined;
         case 'on_click':
           return Icons.touch_app_outlined;
+        case 'nodes_action':
+          return Icons.account_tree;
         default:
           return Icons.touch_app_outlined;
       }
@@ -2821,8 +2826,11 @@ class _WebsiteEditorDashboardPageState extends State<WebsiteEditorDashboard> {
         color: Colors.transparent,
         child: InkWell(
           onTap: () {
+            print('Interaction clicked: ${interaction['type']}'); // Debug print
+            print('Full interaction data: $interaction'); // Debug print
             // Check if this is a nodes action - if so, open nodes editor directly
             if (interaction['type'] == 'nodes_action') {
+              print('Opening nodes editor for: ${interaction['nodeName']}'); // Debug print
               setState(() {
                 _showNodesPage = true;
                 _currentEditingInteraction = interaction;
